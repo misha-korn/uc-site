@@ -395,3 +395,31 @@ curl -s https://example.ru/sitemap.xml | head
 | PDF не открываются (404) | Неверный путь `/media/` в nginx или файл не загружен |
 | 413 Request Entity Too Large | Увеличьте `client_max_body_size` в nginx |
 | Заявки не приходят в Telegram | Проверьте токен/ID чата, бот должен быть добавлен в чат; логи сайта |
+
+---
+
+## Docker + HTTPS (certbot на хосте)
+
+nginx внутри `docker compose` работает только по HTTP. HTTPS принимает nginx хоста
+(`deploy/nginx/host-ssl-proxy.conf`) и передаёт запросы контейнеру на `127.0.0.1:8080`.
+
+1. В `.env`: `HTTP_PORT=127.0.0.1:8080`, `SECURE_SSL_REDIRECT=0` (до получения сертификата),
+   `ALLOWED_HOSTS=ВАШ-ДОМЕН.ru,www.ВАШ-ДОМЕН.ru`, `SITE_URL=https://ВАШ-ДОМЕН.ru`.
+2. `docker compose up -d --build` → проверка: `curl -sI http://127.0.0.1:8080 | head -1`.
+3. nginx хоста: `sudo apt install -y nginx certbot python3-certbot-nginx && sudo systemctl enable --now nginx`.
+4. Домен (A-записи `@` и `www`) указывает на IP сервера: `dig +short ВАШ-ДОМЕН.ru`.
+5. Сертификат (стандартный конфиг nginx отвечает на 80 порту):
+   ```bash
+   sudo certbot certonly --webroot -w /var/www/html -d ВАШ-ДОМЕН.ru -d www.ВАШ-ДОМЕН.ru \
+     -m ваш@email.ru --agree-tos --no-eff-email --deploy-hook "systemctl reload nginx"
+   ```
+6. Включить конфиг сайта:
+   ```bash
+   sudo cp deploy/nginx/host-ssl-proxy.conf /etc/nginx/sites-available/uc-site.conf
+   sudo sed -i 's/example\.ru/ВАШ-ДОМЕН.ru/g' /etc/nginx/sites-available/uc-site.conf
+   sudo rm -f /etc/nginx/sites-enabled/default
+   sudo ln -s /etc/nginx/sites-available/uc-site.conf /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+   sudo certbot renew --dry-run
+   ```
+7. В `.env`: `SECURE_SSL_REDIRECT=1` → `docker compose up -d`.

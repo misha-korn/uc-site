@@ -193,16 +193,18 @@ sed -i 's/example\.ru/ВАШ-ДОМЕН.ru/g' /etc/nginx/sites-available/uc-site
 ```
 Конфиг ссылается на сертификат, которого ещё нет. Получаем его в два шага:
 ```bash
-# 1) временно — только HTTP, чтобы certbot смог проверить домен
+# 1) получаем сертификат: стандартный default-конфиг nginx уже отдаёт /var/www/html на 80 порту
+certbot certonly --webroot -w /var/www/html -d ВАШ-ДОМЕН.ru -d www.ВАШ-ДОМЕН.ru \
+  -m ваш@email.ru --agree-tos --no-eff-email --deploy-hook "systemctl reload nginx"
+# 2) выключаем default и включаем конфиг сайта
 rm -f /etc/nginx/sites-enabled/default
-systemctl reload nginx
-certbot certonly --webroot -w /var/www/html -d ВАШ-ДОМЕН.ru -d www.ВАШ-ДОМЕН.ru -m ваш@email.ru --agree-tos
-# 2) включаем полный конфиг
 ln -s /etc/nginx/sites-available/uc-site.conf /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
+# 3) проверка автопродления
+certbot renew --dry-run
 ```
 Сертификат продлевается автоматически (`systemctl list-timers | grep certbot`).
-Для webroot-проверки на первом шаге нужен любой server на 80 порту с `root /var/www/html` — стандартный default-конфиг nginx подходит (удалите его после шага 2).
+Перед шагом 1 домен должен указывать на IP сервера (A-записи для `ВАШ-ДОМЕН.ru` и `www`), порты 80 и 443 открыты (`ufw allow 'Nginx Full'`).
 
 Что делает nginx-конфиг: отдаёт `/static/` (кеш 30 дней) и `/media/` (документы PDF) напрямую с диска,
 сжимает gzip, добавляет заголовки безопасности (HSTS, nosniff, X-Frame-Options, Referrer-Policy;

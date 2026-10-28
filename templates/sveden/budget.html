@@ -1,0 +1,35 @@
+{% extends "sveden/base_sveden.html" %}
+{% load ui %}
+{% block sveden_content %}
+{% comment %}Объём деятельности — строка <tr itemprop="volume">: finYear + fin*Volume;
+поступление/расходование — <tr itemprop="finRec">: finYear + finPost/finRas (research/ITEMPROP.md).
+Финансовый год — SvedenField с itemprop finYear (если не заполнен — «Отсутствует»).{% endcomment %}
+{% with year=fields|by_prop:"finYear" volumes=fields|by_prop:"finBFVolume,finBRVolume,finBMVolume,finPVolume" rec=fields|by_prop:"finPost,finRas" %}
+<h2>Объём образовательной деятельности по источникам финансирования</h2>
+<div class="table-wrap table-wrap--cards">
+  <table class="t">
+    <caption class="visually-hidden">Объём образовательной деятельности, финансовое обеспечение которой осуществляется за счёт бюджетов и по договорам</caption>
+    <thead><tr><th scope="col">Финансовый год</th>{% for f in volumes %}<th scope="col">{{ f.label }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr itemprop="volume"><td data-label="Финансовый год" itemprop="finYear">{% if year %}{{ year.0.value|default:"Отсутствует" }}{% else %}Отсутствует{% endif %}</td>{% for f in volumes %}<td data-label="{{ f.label }}" itemprop="{{ f.itemprop }}">{{ f.value|default:"Отсутствует" }}</td>{% endfor %}</tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Поступление и расходование финансовых и материальных средств</h2>
+<div class="table-wrap table-wrap--cards">
+  <table class="t">
+    <caption class="visually-hidden">Поступление и расходование финансовых и материальных средств по итогам финансового года</caption>
+    <thead><tr><th scope="col">Финансовый год</th>{% for f in rec %}<th scope="col">{{ f.label }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      <tr itemprop="finRec"><td data-label="Финансовый год" itemprop="finYear">{% if year %}{{ year.0.value|default:"Отсутствует" }}{% else %}Отсутствует{% endif %}</td>{% for f in rec %}<td data-label="{{ f.label }}" itemprop="{{ f.itemprop }}">{{ f.value|default:"Отсутствует"|linebreaksbr }}</td>{% endfor %}</tr>
+    </tbody>
+  </table>
+</div>
+{% endwith %}
+
+{% for f in fields|exclude_props:"finYear,finBFVolume,finBRVolume,finBMVolume,finPVolume,finPost,finRas" %}{% include "sveden/_field.html" with f=f %}{% endfor %}
+
+<h2>План финансово-хозяйственной деятельности</h2>
+{% include "sveden/_docs.html" with docs=docs empty_prop="finPlanDocLink" %}
+{% endblock %}

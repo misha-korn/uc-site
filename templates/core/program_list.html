@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if active_category %}{{ active_category.name }} — обучение в Самаре, цены — {{ org.short_name|default:"Учебный центр" }}{% else %}Программы обучения и цены — {{ org.short_name|default:"Учебный центр" }}{% endif %}{% endblock %}
+{% block description %}{% if active_category %}{{ active_category.short }} Сроки, стоимость, выдаваемые документы. Заявка онлайн.{% else %}20+ программ: охрана труда А, Б, В, первая помощь, пожарная и электробезопасность, работы на высоте, стропальщик, сварщик. Цены и сроки.{% endif %}{% endblock %}
+{% block og_title %}{% if active_category %}{{ active_category.name }}{% else %}Программы обучения и цены{% endif %}{% endblock %}
+{% block canonical %}{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}{% if active_category %}?cat={{ active_category.slug|urlencode }}{% endif %}{% endblock %}
+{% block og_url %}{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}{% if active_category %}?cat={{ active_category.slug|urlencode }}{% endif %}{% endblock %}
+{% block jsonld %}{% if programs %}
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "ItemList", "itemListElement": [{% for p in programs %}
+  {"@type": "ListItem", "position": {{ forloop.counter }}, "url": "{{ request.scheme }}://{{ request.get_host }}{{ p.get_absolute_url }}", "name": "{{ p.title|escapejs }}"}{% if not forloop.last %},{% endif %}{% endfor %}
+]}
+</script>{% endif %}{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      {% if active_category %}
+        <li><a href="{% url 'core:program_list' %}">Обучение</a></li>
+        <li><span aria-current="page">{{ active_category.name }}</span></li>
+      {% else %}
+        <li><span aria-current="page">Обучение</span></li>
+      {% endif %}
+    </ol></nav>
+    <h1>{% if active_category %}{{ active_category.name }}{% else %}Программы обучения{% endif %}</h1>
+    <p class="lead">{% if active_category and active_category.short %}{{ active_category.short }}{% else %}Цена указана за одного слушателя. Для групп от 5 человек — скидка 10&nbsp;%, выезд на предприятие по Самаре и области.{% endif %}</p>
+  </div>
+</div>
+
+<div class="section section--tight">
+  <div class="container">
+    <nav aria-label="Фильтр по направлениям">
+      <ul class="chips">
+        <li><a class="chip" href="{% url 'core:program_list' %}"{% if not active_category %} aria-current="page"{% endif %}>Все программы</a></li>
+        {% for c in categories %}
+        <li><a class="chip" href="{% url 'core:program_list' %}?cat={{ c.slug|urlencode }}"{% if active_category and active_category.pk == c.pk %} aria-current="page"{% endif %}>{{ c.name }} <span class="chip__n">{{ c.programs_count }}</span></a></li>
+        {% endfor %}
+      </ul>
+    </nav>
+
+    {% if active_category %}
+      {% if programs %}
+        <ul class="price-list">{% for p in programs %}{% include "core/_program_row.html" with p=p %}{% endfor %}</ul>
+      {% else %}
+        <div class="empty">
+          <p>Программы в этой категории скоро появятся. Оставьте заявку — расскажем о ближайших группах.</p>
+          <a class="btn" href="{% url 'core:lead_create' %}">Оставить заявку</a>
+        </div>
+      {% endif %}
+    {% elif programs %}
+      {% for c in categories %}{% if c.programs_count %}
+      <section class="cat-block" aria-labelledby="cat-{{ c.slug }}">
+        <div class="cat-block__head">
+          <span class="tile">{% icon c.icon %}</span>
+          <div><h2 id="cat-{{ c.slug }}">{{ c.name }}</h2></div>
+        </div>
+        <ul class="price-list">
+          {% for p in programs %}{% if p.category_id == c.pk %}{% include "core/_program_row.html" with p=p %}{% endif %}{% endfor %}
+        </ul>
+      </section>
+      {% endif %}{% endfor %}
+    {% else %}
+      <div class="empty">
+        <p>Программы пока не опубликованы.{% if org.phone_list %} Позвоните нам: <a href="{{ org.phone_list.0.href }}">{{ org.phone_list.0.text }}</a>.{% endif %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<section class="section section--white" aria-labelledby="cta-title">
+  <div class="container lead-split">
+    <div>
+      <h2 id="cta-title">Не нашли нужную программу?</h2>
+      <p class="lead">Оставьте заявку — подберём обучение под требования вашей должности или профессии и назовём ближайшие даты.</p>
+    </div>
+    <div><a class="btn" href="{% url 'core:lead_create' %}">Оставить заявку</a></div>
+  </div>
+</section>
+{% endblock %}

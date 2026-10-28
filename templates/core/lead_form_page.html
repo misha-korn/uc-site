@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Заявка на обучение — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Оставьте заявку на обучение: перезвоним, подберём программу и пришлём договор.{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
+{% block og_title %}Заявка на обучение{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      <li><span aria-current="page">Заявка на обучение</span></li>
+    </ol></nav>
+    <h1>Заявка на обучение</h1>
+    <p class="lead">Перезвоним в течение 15 минут в рабочее время, подберём программу и назовём ближайшие даты.</p>
+  </div>
+</div>
+<div class="section section--tight">
+  <div class="container lead-split">
+    <div class="form-card">
+      {% include "core/_lead_form.html" with form=form %}
+    </div>
+    <div>
+      <h2 class="h-contacts">Удобнее позвонить?</h2>
+      {% include "core/_contacts_list.html" %}
+    </div>
+  </div>
+</div>
+{% endblock %}

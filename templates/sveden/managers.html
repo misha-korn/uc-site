@@ -1,0 +1,31 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<div class="table-wrap table-wrap--cards">
+  <table class="t t--wide">
+    <caption>Руководитель и заместители руководителя</caption>
+    <thead><tr><th scope="col">ФИО</th><th scope="col">Должность</th><th scope="col">Телефон</th><th scope="col">Электронная почта</th></tr></thead>
+    <tbody>
+      {% if head %}
+      <tr itemprop="{{ head.itemprop }}">
+        <td data-label="ФИО" itemprop="fio"><strong>{{ head.fio }}</strong></td>
+        <td data-label="Должность" itemprop="post">{{ head.post }}</td>
+        <td data-label="Телефон" itemprop="telephone">{{ head.phone|default:"Отсутствует" }}</td>
+        <td data-label="E-mail" itemprop="email">{% if head.email %}<a href="mailto:{{ head.email }}">{{ head.email }}</a>{% else %}Отсутствует{% endif %}</td>
+      </tr>
+      {% else %}
+      <tr itemprop="rucovodstvo"><td data-label="ФИО" itemprop="fio">Отсутствует</td><td data-label="Должность" itemprop="post">Отсутствует</td><td data-label="Телефон" itemprop="telephone">Отсутствует</td><td data-label="E-mail" itemprop="email">Отсутствует</td></tr>
+      {% endif %}
+      {% for m in deputies %}
+      <tr itemprop="{{ m.itemprop }}">
+        <td data-label="ФИО" itemprop="fio">{{ m.fio }}</td>
+        <td data-label="Должность" itemprop="post">{{ m.post }}</td>
+        <td data-label="Телефон" itemprop="telephone">{{ m.phone|default:"Отсутствует" }}</td>
+        <td data-label="E-mail" itemprop="email">{% if m.email %}<a href="mailto:{{ m.email }}">{{ m.email }}</a>{% else %}Отсутствует{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="rucovodstvoZam"><td data-label="ФИО" itemprop="fio">Заместители руководителя: отсутствуют</td><td data-label="Должность" itemprop="post">Отсутствует</td><td data-label="Телефон" itemprop="telephone">Отсутствует</td><td data-label="E-mail" itemprop="email">Отсутствует</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

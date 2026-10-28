@@ -1,0 +1,28 @@
+{% load static ui %}<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Что-то пошло не так</title>
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-row">
+      <a class="brand" href="/">{% include "core/_logo.html" %}<span class="brand__name"><span class="brand__title">Учебный центр</span><span class="brand__sub">Охрана труда и рабочие профессии</span></span></a>
+    </div>
+  </header>
+  <main id="main">
+    <div class="container">
+      <div class="result">
+        <div class="result__mark result__mark--warn">{% icon "info" %}</div>
+        <h1>Что-то пошло не так</h1>
+        <p class="lead">Мы уже знаем о проблеме. Обновите страницу через пару минут или позвоните нам — запишем вас по телефону.</p>
+        <div class="result__actions"><a class="btn" href="/">На главную</a></div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

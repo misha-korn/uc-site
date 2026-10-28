@@ -1,0 +1,32 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<p class="muted">Педагогические работники, участвующие в реализации образовательных программ.</p>
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide t--staff">
+    <caption class="visually-hidden">Педагогический состав</caption>
+    <thead><tr>
+      <th scope="col">ФИО</th><th scope="col">Должность</th><th scope="col">Преподаваемые дисциплины</th><th scope="col">Уровень образования, специальность, квалификация</th>
+      <th scope="col">Учёная степень</th><th scope="col">Учёное звание</th><th scope="col">Повышение квалификации (за 3 года)</th><th scope="col">Профессиональная переподготовка</th>
+      <th scope="col">Стаж в профессиональной сфере, лет</th><th scope="col">Программы, в которых участвует</th>
+    </tr></thead>
+    <tbody>
+      {% for t in teachers %}
+      <tr itemprop="teachingStaff">
+        <td data-label="ФИО" itemprop="fio"><strong>{{ t.fio }}</strong></td>
+        <td data-label="Должность" itemprop="post">{{ t.post }}</td>
+        <td data-label="Дисциплины" itemprop="teachingDiscipline">{{ t.disciplines|linebreaksbr }}</td>
+        <td data-label="Образование" itemprop="teachingLevel">{{ t.level|linebreaksbr }}</td>
+        <td data-label="Учёная степень" itemprop="degree">{{ t.degree|default:"Нет" }}</td>
+        <td data-label="Учёное звание" itemprop="academStat">{{ t.academic_title|default:"Нет" }}</td>
+        <td data-label="Повышение квалификации" itemprop="qualification">{{ t.qualification|default:"Нет"|linebreaksbr }}</td>
+        <td data-label="Переподготовка" itemprop="profDevelopment">{{ t.retraining|default:"Нет"|linebreaksbr }}</td>
+        <td data-label="Стаж, лет" itemprop="specExperience" class="num">{{ t.experience }}</td>
+        <td data-label="Программы" itemprop="teachingOp">{% with ps=t.programs.all %}{% if ps %}<ul>{% for p in ps %}<li>{{ p.title }}</li>{% endfor %}</ul>{% else %}Нет{% endif %}{% endwith %}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="teachingStaff"><td itemprop="fio">Отсутствует</td><td itemprop="post">Отсутствует</td><td itemprop="teachingDiscipline">Отсутствует</td><td itemprop="teachingLevel">Отсутствует</td><td itemprop="degree">Нет</td><td itemprop="academStat">Нет</td><td itemprop="qualification">Нет</td><td itemprop="profDevelopment">Нет</td><td itemprop="specExperience">Нет</td><td itemprop="teachingOp">Нет</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

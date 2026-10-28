@@ -1,0 +1,10 @@
+{% extends "sveden/base_sveden.html" %}
+{% load ui %}
+{% block sveden_content %}
+<p class="lead">Информация размещена в соответствии с приказом Рособрнадзора от 04.08.2023 № 1493. Выберите подраздел.</p>
+<ul class="section-index">
+  {% for s in sections %}
+  <li><a href="{{ s.url }}">{{ s.title }}{% icon "chevron" %}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}

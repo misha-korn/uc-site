@@ -1,0 +1,76 @@
+{% extends "sveden/base_sveden.html" %}
+{% load ui %}
+{% block sveden_content %}
+<div class="table-wrap">
+  <table class="t t--kv">
+    <caption class="visually-hidden">Основные сведения об образовательной организации</caption>
+    <tbody>
+      <tr><th scope="row">Полное наименование</th><td itemprop="fullName">{{ org.full_name|default:"Отсутствует" }}</td></tr>
+      <tr><th scope="row">Сокращённое наименование</th><td itemprop="shortName">{{ org.short_name|default:"Отсутствует" }}</td></tr>
+      <tr><th scope="row">Дата создания</th><td itemprop="regDate">{% if org.reg_date %}{{ org.reg_date|date:"d.m.Y" }}{% else %}Отсутствует{% endif %}</td></tr>
+      <tr><th scope="row">Место нахождения</th><td itemprop="address">{{ org.address|default:"Отсутствует" }}</td></tr>
+      <tr><th scope="row">Режим и график работы</th><td itemprop="workTime">{{ org.work_time|default:"Отсутствует"|linebreaksbr }}</td></tr>
+      <tr><th scope="row">Контактные телефоны</th><td itemprop="telephone">{% for p in org.phone_list %}<a href="{{ p.href }}">{{ p.text }}</a>{% if not forloop.last %}; {% endif %}{% empty %}Отсутствует{% endfor %}</td></tr>
+      <tr><th scope="row">Адреса электронной почты</th><td itemprop="email">{% for e in org.email_list %}<a href="{{ e.href }}">{{ e.text }}</a>{% if not forloop.last %}; {% endif %}{% empty %}Отсутствует{% endfor %}</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>Учредитель</h2>
+<div class="table-wrap table-wrap--cards">
+  <table class="t">
+    <caption class="visually-hidden">Сведения об учредителе (учредителях)</caption>
+    <thead><tr>
+      <th scope="col">Наименование учредителя</th><th scope="col">Место нахождения</th><th scope="col">Телефон</th><th scope="col">Электронная почта</th><th scope="col">Сайт</th>
+    </tr></thead>
+    <tbody>
+      {% for f in founders %}
+      <tr itemprop="uchredLaw">
+        <td data-label="Наименование" itemprop="nameUchred">{{ f.name }}</td>
+        <td data-label="Место нахождения" itemprop="addressUchred">{{ f.address|default:"Отсутствует" }}</td>
+        <td data-label="Телефон" itemprop="telUchred">{{ f.phone|default:"Отсутствует" }}</td>
+        <td data-label="E-mail" itemprop="mailUchred">{{ f.email|default:"Отсутствует" }}</td>
+        <td data-label="Сайт" itemprop="websiteUchred">{% if f.website %}<a href="{{ f.website }}">{{ f.website }}</a>{% else %}Отсутствует{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="uchredLaw">
+        <td data-label="Наименование" itemprop="nameUchred">Отсутствует</td><td data-label="Место нахождения" itemprop="addressUchred">Отсутствует</td>
+        <td data-label="Телефон" itemprop="telUchred">Отсутствует</td><td data-label="E-mail" itemprop="mailUchred">Отсутствует</td><td data-label="Сайт" itemprop="websiteUchred">Отсутствует</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Места осуществления образовательной деятельности</h2>
+<p class="muted">В том числе не указанные в приложении к лицензии (реестре лицензий).</p>
+<div class="table-wrap table-wrap--cards">
+  <table class="t">
+    <caption class="visually-hidden">Места осуществления образовательной деятельности</caption>
+    <thead><tr><th scope="col">Вид места</th><th scope="col">Адрес</th></tr></thead>
+    <tbody>
+      {% for p in places %}
+      <tr itemprop="{{ p.itemprop }}"><th scope="row" data-label="Вид места">{{ p.get_kind_display }}</th><td data-label="Адрес">{{ p.address }}</td></tr>
+      {% endfor %}
+      {# Виды мест без адресов — строкой «Отсутствует» (элемент с itemprop не пропускаем) #}
+      {% for k in places|missing_place_kinds %}
+      <tr itemprop="{{ k.itemprop }}"><th scope="row" data-label="Вид места">{{ k.label }}</th><td data-label="Адрес">Отсутствует</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Лицензия на осуществление образовательной деятельности</h2>
+{% if org.license_number %}<p>№ {{ org.license_number }}{% if org.license_date %} от {{ org.license_date|date:"d.m.Y" }}{% endif %}{% if org.license_issuer %}, выдана: {{ org.license_issuer }}{% endif %}.</p>{% endif %}
+<ul class="doc-list">
+  <li class="doc">
+    <span class="doc__icon">{% icon "pdf" %}</span>
+    <div>{% if org.license_link %}<a class="doc__title" href="{{ org.license_link }}" itemprop="licenseDocLink">Выписка из реестра лицензий на осуществление образовательной деятельности{% if org.license_number %} (лицензия № {{ org.license_number }}){% endif %}</a>{% else %}<span class="doc__title">Выписка из реестра лицензий: <span itemprop="licenseDocLink">Отсутствует</span></span>{% endif %}</div>
+  </li>
+</ul>
+
+{% if org.accreditation_note %}
+<h2>Государственная аккредитация</h2>
+<p>{{ org.accreditation_note }}</p>
+{% endif %}
+{% endblock %}

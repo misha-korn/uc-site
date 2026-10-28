@@ -1,0 +1,5 @@
+{# Текстовое сведение SvedenField: подпись + значение; itemprop — только если задан. #}
+<div class="svf">
+  <h3 class="svf__label">{{ f.label }}</h3>
+  <div class="svf__value"{% if f.itemprop and not no_prop %} itemprop="{{ f.itemprop }}"{% endif %}>{{ f.value|default:"Отсутствует"|linebreaksbr }}</div>
+</div>

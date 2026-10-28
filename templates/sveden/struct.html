@@ -1,0 +1,35 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide">
+    <caption>Структурные подразделения и органы управления</caption>
+    <thead><tr>
+      <th scope="col">Наименование</th><th scope="col">Руководитель</th><th scope="col">Должность</th><th scope="col">Место нахождения</th><th scope="col">Сайт</th><th scope="col">Электронная почта</th><th scope="col">Положение</th>
+    </tr></thead>
+    <tbody>
+      {% for d in departments %}
+      <tr itemprop="structOrgUprav">
+        <td data-label="Наименование" itemprop="name">{{ d.name }}</td>
+        <td data-label="Руководитель" itemprop="fio">{{ d.head_fio|default:"Отсутствует" }}</td>
+        <td data-label="Должность" itemprop="post">{{ d.head_post|default:"Отсутствует" }}</td>
+        <td data-label="Место нахождения" itemprop="addressStr">{{ d.address|default:"Отсутствует" }}</td>
+        <td data-label="Сайт" itemprop="site">{% if d.site %}<a href="{{ d.site }}">{{ d.site }}</a>{% else %}Отсутствует{% endif %}</td>
+        <td data-label="E-mail" itemprop="email">{% if d.email %}<a href="mailto:{{ d.email }}">{{ d.email }}</a>{% else %}Отсутствует{% endif %}</td>
+        <td data-label="Положение">{% if d.clause_file %}<a href="{{ d.clause_file.url }}" itemprop="divisionClauseDocLink">Положение о подразделении «{{ d.name }}» (PDF)</a>{% else %}<span itemprop="divisionClauseDocLink">Отсутствует</span>{% endif %}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="structOrgUprav">
+        <td data-label="Наименование" itemprop="name">Отсутствует</td><td data-label="Руководитель" itemprop="fio">Отсутствует</td><td data-label="Должность" itemprop="post">Отсутствует</td>
+        <td data-label="Место нахождения" itemprop="addressStr">Отсутствует</td><td data-label="Сайт" itemprop="site">Отсутствует</td><td data-label="E-mail" itemprop="email">Отсутствует</td>
+        <td data-label="Положение" itemprop="divisionClauseDocLink">Отсутствует</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if docs %}
+<h2>Документы о структуре и органах управления</h2>
+{% include "sveden/_docs.html" with docs=docs %}
+{% endif %}
+{% endblock %}

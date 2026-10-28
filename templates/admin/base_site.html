@@ -1,0 +1,6 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:"Панель учебного центра" }}{% endblock %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/admin.css' %}"><link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">{% endblock %}
+{% block branding %}<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'img/logo.svg' %}" alt="" width="32" height="32">{{ site_header|default:"Панель учебного центра" }}</a></div>{% endblock %}
+{% block nav-global %}<a class="admin-site-link" href="/">Открыть сайт</a>{% endblock %}

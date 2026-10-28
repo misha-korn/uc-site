@@ -1,0 +1,69 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<h2>Реализуемые образовательные программы</h2>
+<p class="muted">Уровни образования, формы обучения, нормативные сроки, учебные предметы и практики.</p>
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide t--edu">
+    <caption class="visually-hidden">Реализуемые образовательные программы</caption>
+    <thead><tr>
+      <th scope="col">Наименование программы</th><th scope="col">Код</th><th scope="col">Направленность (профиль)</th><th scope="col">Уровень образования</th>
+      <th scope="col">Форма обучения</th><th scope="col">Нормативный срок</th><th scope="col">Учебные предметы, модули</th><th scope="col">Практика</th>
+    </tr></thead>
+    <tbody>
+      {% for p in programs %}
+      <tr itemprop="eduAccred">
+        <td data-label="Программа" itemprop="eduName"><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></td>
+        <td data-label="Код" itemprop="eduCode">{{ p.code|default:"Нет" }}</td>
+        <td data-label="Направленность" itemprop="eduProf">{{ p.category.name }}</td>
+        <td data-label="Уровень" itemprop="eduLevel">{{ p.level_display }}<span class="t-sub">{{ p.get_kind_display }}</span></td>
+        <td data-label="Форма обучения" itemprop="eduForm">{{ p.form|default:"Очная" }}</td>
+        <td data-label="Срок" itemprop="learningTerm"><span class="nowrap">{{ p.hours }} ак. ч</span>{% if p.duration %}, {{ p.duration }}{% endif %}</td>
+        <td data-label="Предметы, модули" itemprop="eduPred">{% if p.disciplines_list %}<ul>{% for m in p.disciplines_list %}<li>{{ m }}</li>{% endfor %}</ul>{% else %}Отсутствует{% endif %}</td>
+        <td data-label="Практика" itemprop="eduPrac">{{ p.practice|default:"Нет" }}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="eduAccred"><td itemprop="eduCode">Отсутствует</td><td itemprop="eduName">Отсутствует</td><td itemprop="eduProf">Отсутствует</td><td itemprop="eduLevel">Отсутствует</td><td itemprop="eduForm">Отсутствует</td><td itemprop="learningTerm">Отсутствует</td><td itemprop="eduPred">Отсутствует</td><td itemprop="eduPrac">Отсутствует</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Образовательные программы (документы)</h2>
+<p class="muted">Электронные документы, подписанные простой электронной подписью.</p>
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide t--op">
+    <caption class="visually-hidden">Образовательные программы и их компоненты</caption>
+    <thead><tr>
+      <th scope="col">Наименование</th><th scope="col">Код</th><th scope="col">Уровень</th><th scope="col">Направленность</th><th scope="col">Форма</th>
+      <th scope="col">Образовательная программа</th><th scope="col">Учебный план</th><th scope="col">Рабочие программы</th><th scope="col">Календарный график</th><th scope="col">Практика</th><th scope="col">Методические материалы</th>
+    </tr></thead>
+    <tbody>
+      {% for p in programs %}
+      <tr itemprop="eduOp">
+        <td data-label="Наименование" itemprop="eduName">{{ p.title }}</td>
+        <td data-label="Код" itemprop="eduCode">{{ p.code|default:"Нет" }}</td>
+        <td data-label="Уровень" itemprop="eduLevel">{{ p.level_display }}</td>
+        <td data-label="Направленность" itemprop="eduProf">{{ p.category.name }}</td>
+        <td data-label="Форма" itemprop="eduForm">{{ p.form|default:"Очная" }}</td>
+        <td data-label="Программа">{% if p.op_file %}<a href="{{ p.op_file.url }}" itemprop="opMain">Образовательная программа<span class="visually-hidden"> «{{ p.title }}»</span> (PDF)</a>{% else %}<span itemprop="opMain">Отсутствует</span>{% endif %}</td>
+        <td data-label="Учебный план">{% if p.plan_file %}<a href="{{ p.plan_file.url }}" itemprop="educationPlan">Учебный план<span class="visually-hidden">: {{ p.title }}</span> (PDF)</a>{% else %}<span itemprop="educationPlan">Отсутствует</span>{% endif %}</td>
+        <td data-label="Рабочие программы">{% if p.rpd_file %}<a href="{{ p.rpd_file.url }}" itemprop="educationRpd">Рабочие программы модулей<span class="visually-hidden">: {{ p.title }}</span> (PDF)</a>{% else %}<span itemprop="educationRpd">Отсутствует</span>{% endif %}</td>
+        <td data-label="График">{% if p.schedule_file %}<a href="{{ p.schedule_file.url }}" itemprop="educationShedule">Календарный учебный график<span class="visually-hidden">: {{ p.title }}</span> (PDF)</a>{% else %}<span itemprop="educationShedule">Отсутствует</span>{% endif %}</td>
+        <td data-label="Практика"><span itemprop="eduPr">{% if p.practice %}В составе образовательной программы{% else %}Отсутствует{% endif %}</span></td>
+        <td data-label="Методические материалы">{% if p.methodology_file %}<a href="{{ p.methodology_file.url }}" itemprop="methodology">Методические материалы<span class="visually-hidden">: {{ p.title }}</span> (PDF)</a>{% else %}<span itemprop="methodology">Отсутствует</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if docs %}
+<h2>Документы об образовательной деятельности</h2>
+{% include "sveden/_docs.html" with docs=docs %}
+{% endif %}
+
+{% if fields %}
+<h2>Иные сведения</h2>
+{% include "sveden/_fields.html" %}
+{% endif %}
+{% endblock %}

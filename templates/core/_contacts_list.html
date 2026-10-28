@@ -1,0 +1,10 @@
+{% load ui %}{% if org %}
+<ul class="contact-list">
+  {% if org.phone_list %}<li>{% icon "phone" %}<div><span class="k">Телефон</span>{% for p in org.phone_list %}<a class="v v--big" href="{{ p.href }}">{{ p.text }}</a>{% endfor %}</div></li>{% endif %}
+  {% if org.email_list %}<li>{% icon "mail" %}<div><span class="k">E-mail</span>{% for e in org.email_list %}<a class="v" href="{{ e.href }}">{{ e.text }}</a>{% endfor %}</div></li>{% endif %}
+  <li>{% icon "pin" %}<div><span class="k">Адрес</span><span class="v">{{ org.address }}</span></div></li>
+  {% if org.work_time %}<li>{% icon "clock" %}<div><span class="k">Режим работы</span><span class="v">{{ org.work_time|linebreaksbr }}</span></div></li>{% endif %}
+</ul>
+{% else %}
+<p>Сведения об организации заполняются. Пожалуйста, зайдите позже.</p>
+{% endif %}

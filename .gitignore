@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Виртуальное окружение
+.venv/
+venv/
+env/
+
+# Секреты и локальные настройки
+.env
+.env.*
+!.env.example
+
+# Базы данных и данные
+db.sqlite3
+db.sqlite3-journal
+*.sqlite3
+/media/*
+!/media/.gitkeep
+/staticfiles/
+/dist/
+/backups/
+*.sql.gz
+*.dump
+
+# IDE и ОС
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи
+*.log

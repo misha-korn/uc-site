@@ -1,0 +1,21 @@
+{% extends "sveden/base_sveden.html" %}
+{% load ui %}
+{% block sveden_content %}
+{% comment %}Каждое сведение с itemprop internationalDog = строка таблицы; значение «государство; организация; реквизиты договора».
+Нет таких сведений — строка «Отсутствует» (research/ITEMPROP.md, inter).{% endcomment %}
+<div class="table-wrap table-wrap--cards">
+  <table class="t">
+    <caption>Заключённые и планируемые к заключению договоры с иностранными и (или) международными организациями</caption>
+    <thead><tr><th scope="col">Государство</th><th scope="col">Наименование организации</th><th scope="col">Реквизиты договора</th></tr></thead>
+    <tbody>
+      {% for f in fields|by_prop:"internationalDog" %}{% with c=f.value|cols:3 %}
+      <tr itemprop="internationalDog"><td data-label="Государство" itemprop="stateName">{{ c.0 }}</td><td data-label="Организация" itemprop="orgName">{{ c.1 }}</td><td data-label="Реквизиты договора" itemprop="dogReg">{{ c.2 }}</td></tr>
+      {% endwith %}{% empty %}
+      <tr itemprop="internationalDog"><td data-label="Государство" itemprop="stateName">Отсутствует</td><td data-label="Организация" itemprop="orgName">Отсутствует</td><td data-label="Реквизиты договора" itemprop="dogReg">Отсутствует</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% for f in fields|exclude_props:"internationalDog" %}{% include "sveden/_field.html" with f=f %}{% endfor %}
+{% include "sveden/_docs.html" with docs=docs %}
+{% endblock %}

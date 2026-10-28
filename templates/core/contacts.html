@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Контакты учебного центра в Самаре — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Адрес, телефон, e-mail и режим работы {{ org.short_name|default:"учебного центра" }}. Как добраться, где проходит практика.{% endblock %}
+{% block og_title %}Контакты{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      <li><span aria-current="page">Контакты</span></li>
+    </ol></nav>
+    <h1>Контакты</h1>
+  </div>
+</div>
+
+<div class="section section--tight">
+  <div class="container contacts-grid">
+    <div>
+      {% include "core/_contacts_list.html" %}
+      <p class="contacts-cta"><a class="btn" href="{% url 'core:lead_create' %}">Оставить заявку</a></p>
+    </div>
+    <div>
+      {% if org.map_embed_url %}
+        <div class="map"><iframe src="{{ org.map_embed_url }}" title="Карта: {{ org.address }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></div>
+      {% elif org %}
+        <div class="map-fallback">
+          <svg class="map-fallback__art illus" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+            <g fill="none" stroke="#d5dce4" stroke-width="10" stroke-linecap="round"><path d="M-20 60h440M-20 190h440M80-20v300M300-20v300"/><path d="M-20 260 420 20" stroke-width="6"/></g>
+            <g fill="none" stroke="#e3eaf2" stroke-width="4"><path d="M-20 120h440M190-20v300"/></g>
+          </svg>
+          <p class="muted">Адрес учебного центра</p>
+          <address>{{ org.address }}</address>
+          <a class="btn btn--dark" href="https://yandex.ru/maps/?text={{ org.address|urlencode }}" rel="noopener" target="_blank">{% icon "pin" %}Открыть в Яндекс Картах<span class="visually-hidden"> (в новой вкладке)</span></a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if org %}
+<section class="section section--white" aria-labelledby="req-title">
+  <div class="container">
+    <h2 id="req-title">Реквизиты</h2>
+    <dl class="req">
+      <div><dt>Полное наименование</dt><dd>{{ org.full_name }}</dd></div>
+      <div><dt>Сокращённое</dt><dd>{{ org.short_name }}</dd></div>
+      <div><dt>ИНН</dt><dd class="num">{{ org.inn }}</dd></div>
+      <div><dt>ОГРН</dt><dd class="num">{{ org.ogrn }}</dd></div>
+      <div><dt>Адрес</dt><dd>{{ org.address }}</dd></div>
+      {% if org.license_number %}<div><dt>Лицензия</dt><dd>№ {{ org.license_number }}{% if org.license_date %} от {{ org.license_date|date:"d.m.Y" }}{% endif %}{% if org.license_issuer %}, {{ org.license_issuer }}{% endif %}</dd></div>{% endif %}
+    </dl>
+    <p><a class="link-arrow" href="{% url 'sveden:common' %}">Все основные сведения об организации {% icon "chevron" %}</a></p>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

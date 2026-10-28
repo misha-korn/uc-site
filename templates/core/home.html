@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Учебный центр в Самаре: охрана труда, ПБ, рабочие профессии — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Обучение по охране труда, пожарной безопасности, первой помощи и рабочим профессиям в Самаре. Лицензия, реестр Минтруда, выезд на предприятие.{% endblock %}
+{% block og_title %}Обучение по охране труда и рабочим профессиям в Самаре{% endblock %}
+{% block og_description %}Обучение по охране труда, пожарной безопасности, первой помощи и рабочим профессиям в Самаре. Лицензия, реестр Минтруда, выезд на предприятие.{% endblock %}
+{% block jsonld %}{% if faq %}
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{% for q in faq %}
+  {"@type": "Question", "name": "{{ q.title|escapejs }}", "acceptedAnswer": {"@type": "Answer", "text": "{{ q.text|escapejs }}"}}{% if not forloop.last %},{% endif %}{% endfor %}
+]}
+</script>{% endif %}{% endblock %}
+
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+<section class="hero on-dark" aria-labelledby="hero-title">
+  <svg class="hero__grid-bg" aria-hidden="true" focusable="false" width="100%" height="100%">
+    <defs>
+      <pattern id="hero-grid" width="48" height="48" patternUnits="userSpaceOnUse">
+        <path d="M48 0H0v48" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1"/>
+      </pattern>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#hero-grid)"/>
+  </svg>
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      <h1 id="hero-title">Обучение по охране труда и рабочим профессиям в Самаре</h1>
+      <p class="lead">Лицензия, запись в реестр Минтруда, практика на тренажёрах. Теория — дистанционно, без отрыва от работы.</p>
+      <div class="hero__actions">
+        <a class="btn" href="{% url 'core:program_list' %}">Подобрать программу</a>
+        <a class="btn btn--ghost" href="#zayavka">Оставить заявку</a>
+      </div>
+      <ul class="hero__facts">
+        <li>{% icon "check" %}<span>Лицензия{% if org.license_number %} № {{ org.license_number }}{% endif %}</span></li>
+        <li>{% icon "check" %}<span>Удостоверения и протоколы</span></li>
+        <li>{% icon "check" %}<span>Выезд на предприятие</span></li>
+      </ul>
+    </div>
+    {% if categories %}
+    <nav aria-label="Направления обучения">
+      <ul class="hero__board">
+        {% for c in categories|slice:":7" %}
+        <li><a href="{{ c.get_absolute_url }}" title="{{ c.name }}" aria-label="{{ c.name }}">{% icon c.icon %}</a></li>
+        {% endfor %}
+        <li><a href="{% url 'core:program_list' %}" title="Все программы" aria-label="Все программы">{% icon "chevron" %}</a></li>
+        <li class="hero__board-caption">Выберите направление — или откройте все программы</li>
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</section>
+
+{% if stats %}
+<section class="section section--tight section--white" aria-labelledby="stats-title">
+  <div class="container">
+    <h2 id="stats-title" class="visually-hidden">Учебный центр в цифрах</h2>
+    <ul class="stats">
+      {% for s in stats %}<li><span class="stats__value">{{ s.value }}</span><span class="stats__label">{{ s.label }}</span></li>{% endfor %}
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+{% if categories %}
+<section class="section" aria-labelledby="cats-title">
+  <div class="container">
+    <div class="section__head">
+      <h2 id="cats-title">Направления обучения</h2>
+    </div>
+    <ul class="cat-grid">
+      {% for c in categories %}
+      <li class="cat-card">
+        <span class="tile">{% icon c.icon %}</span>
+        <h3><a href="{{ c.get_absolute_url }}">{{ c.name }}</a></h3>
+        <span class="cat-card__count">Программы ({{ c.programs_count }}) {% icon "chevron" %}</span>
+      </li>
+      {% endfor %}
+      <li class="cat-card cat-card--all on-dark">
+        <h3><a href="{% url 'core:program_list' %}">Все программы и цены</a></h3>
+        <p>Полный список курсов с часами, сроками и стоимостью.</p>
+        <span class="cat-card__count">Открыть каталог {% icon "chevron" %}</span>
+      </li>
+    </ul>
+  </div>
+</section>
+{% endif %}
+
+{% if popular_programs %}
+<section class="section section--white" aria-labelledby="popular-title">
+  <div class="container">
+    <div class="section__head">
+      <h2 id="popular-title">Популярные программы</h2>
+      <p>Цена за одного слушателя. Для групп от 5 человек — скидка 10&nbsp;%.</p>
+    </div>
+    <ul class="price-list price-list--compact">
+      {% for p in popular_programs|slice:":5" %}{% include "core/_program_row.html" with p=p show_cat=True %}{% endfor %}
+    </ul>
+    <p class="section-more"><a class="btn btn--ghost" href="{% url 'core:program_list' %}">Все программы обучения</a></p>
+  </div>
+</section>
+{% endif %}
+
+<section class="section section--white" aria-labelledby="adv-title">
+  <div class="container">
+    {% if advantages %}
+    <div class="section__head"><h2 id="adv-title">Почему выбирают нас</h2></div>
+    <ul class="adv adv--4">
+      {% for a in advantages|slice:":4" %}
+      <li><span class="adv__mark">{% icon "check" %}</span><div><h3>{{ a.title }}</h3><p>{{ a.text }}</p></div></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <h2 id="adv-title" class="visually-hidden">Обучение для организаций</h2>
+    {% endif %}
+    <div class="panel-dark on-dark{% if advantages %} panel-dark--after{% endif %}">
+      <div class="panel-dark__grid">
+        <div>
+          <h2 id="org-title">Обучение для организаций</h2>
+          <p>Обучим сотрудников группой — в нашем классе или у вас на предприятии. Подготовим договор, счёт и закрывающие документы, сами внесём сведения в реестр обученных.</p>
+          <a class="btn" href="#zayavka">Обсудить обучение группы</a>
+        </div>
+        <ul class="org-list">
+          <li><span class="tile tile--sm">{% icon "users" %}</span><div><strong>Группа от 5 человек — скидка 10&nbsp;%</strong><span>Расписание подстраиваем под смены.</span></div></li>
+          <li><span class="tile tile--sm">{% icon "truck" %}</span><div><strong>Выезд преподавателя</strong><span>По Самаре и области без доплаты, тренажёры привезём сами.</span></div></li>
+          <li><span class="tile tile--sm">{% icon "doc" %}</span><div><strong>Документы для бухгалтерии</strong><span>Договор, счёт, акт — по ЭДО или почтой, оплата по безналу.</span></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if faq %}
+<section class="section" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="section__head"><h2 id="faq-title">Частые вопросы</h2></div>
+    <div class="faq">
+      {% for q in faq %}
+      <details><summary>{{ q.title }}</summary><div class="faq__answer"><p>{{ q.text }}</p></div></details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section section--white" id="zayavka" aria-labelledby="lead-title">
+  <div class="container lead-split">
+    <div class="form-card">
+      <h2 id="lead-title">Оставьте заявку — перезвоним за 15 минут в рабочее время</h2>
+      <p class="muted">Подберём программу, назовём ближайшие даты и стоимость для вашей группы.</p>
+      {% include "core/_lead_form.html" with form=lead_form %}
+    </div>
+    <div class="lead-side">
+      {% if steps %}
+      <h2 class="h-contacts" id="steps-title">Как проходит обучение</h2>
+      <ol class="steps steps--stack" aria-labelledby="steps-title">
+        {% for s in steps %}<li><h3>{{ s.title }}</h3><p>{{ s.text }}</p></li>{% endfor %}
+      </ol>
+      {% endif %}
+      <h2 class="h-contacts">Контакты</h2>
+      {% include "core/_contacts_list.html" %}
+      <p><a class="link-arrow" href="{% url 'core:contacts' %}">Как добраться и реквизиты {% icon "chevron" %}</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,8 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+{% include "sveden/_fields.html" %}
+{% include "sveden/_docs.html" with docs=docs %}
+{% if not fields and not docs %}
+<p><span itemprop="eduFedDoc">Отсутствует</span></p>
+{% endif %}
+{% endblock %}

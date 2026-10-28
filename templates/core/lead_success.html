@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Заявка отправлена — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Заявка на обучение принята.{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, follow">{% endblock %}
+{% block og_title %}Заявка отправлена{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="result">
+    <div class="result__mark">{% icon "check" %}</div>
+    <h1>Спасибо, заявка принята</h1>
+    <p class="lead">Перезвоним в течение 15 минут в рабочее время.{% if org.phone_list %} Если удобнее — позвоните сами: <a href="{{ org.phone_list.0.href }}" class="nowrap">{{ org.phone_list.0.text }}</a>.{% endif %}</p>
+    {% if org.work_time %}<p class="muted">Режим работы:<br>{{ org.work_time|linebreaksbr }}</p>{% endif %}
+    <div class="result__actions">
+      <a class="btn" href="{% url 'core:program_list' %}">Вернуться к программам</a>
+      <a class="btn btn--ghost" href="{% url 'core:home' %}">На главную</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

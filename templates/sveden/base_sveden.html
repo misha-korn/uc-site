@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{% if section %}{{ section.title }} — Сведения об образовательной организации{% else %}Сведения об образовательной организации{% endif %} — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}{% if section %}{{ section.title }}: официальная информация {{ org.short_name|default:"учебного центра" }} по приказу Рособрнадзора № 1493. Обновлено {{ page_updated|date:"d.m.Y" }}.{% else %}Официальная информация {{ org.short_name|default:"учебного центра" }} по приказу Рособрнадзора № 1493: документы, лицензия, программы, педагоги, МТО.{% endif %}{% endblock %}
+{% block og_title %}{% if section %}{{ section.title }}{% else %}Сведения об образовательной организации{% endif %}{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Главная", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'core:home' %}"},
+  {"@type": "ListItem", "position": 2, "name": "Сведения об образовательной организации", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'sveden:index' %}"}{% if section %},
+  {"@type": "ListItem", "position": 3, "name": "{{ section.title|escapejs }}"}{% endif %}
+]}
+</script>
+{% endblock %}
+{% block body_class %}page-sveden{% endblock %}
+
+{% block content %}
+<div class="page-head page-head--slim">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      {% if section %}
+        <li><a href="{% url 'sveden:index' %}">Сведения об образовательной организации</a></li>
+        <li><span aria-current="page">{{ section.title }}</span></li>
+      {% else %}
+        <li><span aria-current="page">Сведения об образовательной организации</span></li>
+      {% endif %}
+    </ol></nav>
+  </div>
+</div>
+<div class="container sveden-layout">
+  <nav class="sveden-nav" aria-label="Подразделы сведений об образовательной организации">
+    <details class="sveden-nav__details"{% if not section %} open{% endif %}>
+      <summary>Все подразделы сведений {% icon "chevron" %}</summary>
+      <ul>
+        <li><a href="{% url 'sveden:index' %}"{% if not section %} aria-current="page"{% endif %}>Все сведения</a></li>
+        {% for s in sveden_sections %}<li><a href="{{ s.url }}"{% if section and section.slug == s.slug %} aria-current="page"{% endif %}>{{ s.title }}</a></li>{% endfor %}
+      </ul>
+    </details>
+    <div class="sveden-nav__desk">
+      <p class="sveden-nav__title"><a href="{% url 'sveden:index' %}"{% if not section %} aria-current="page"{% endif %}>Сведения об образовательной организации</a></p>
+      <ul>
+        {% for s in sveden_sections %}<li><a href="{{ s.url }}"{% if section and section.slug == s.slug %} aria-current="page"{% endif %}>{{ s.title }}</a></li>{% endfor %}
+      </ul>
+    </div>
+  </nav>
+  <article class="sveden-main">
+    <h1>{% if section %}{{ section.title }}{% else %}Сведения об образовательной организации{% endif %}</h1>
+    {% if page_updated %}<p class="updated">{% icon "clock" %}Дата обновления: <time datetime="{{ page_updated|date:'Y-m-d' }}">{{ page_updated|date:"d.m.Y" }}</time></p>{% endif %}
+    {% if not org and section %}<div class="form-alert form-alert--info"><p>Сведения об организации заполняются. Пожалуйста, зайдите позже.</p></div>{% endif %}
+    {% block sveden_content %}{% endblock %}
+  </article>
+</div>
+{% endblock %}

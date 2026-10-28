@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Страница не найдена — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex">{% endblock %}
+{% block content %}
+<div class="container">
+  <div class="result">
+    <div class="result__mark result__mark--warn">{% icon "info" %}</div>
+    <h1>Страница не найдена</h1>
+    <p class="lead">Возможно, программа переехала или ссылка устарела.</p>
+    <div class="result__actions">
+      <a class="btn" href="{% url 'core:program_list' %}">Все программы</a>
+      <a class="btn btn--ghost" href="{% url 'core:home' %}">На главную</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

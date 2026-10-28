@@ -1,0 +1,13 @@
+[Unit]
+Description=Резервная копия БД и media сайта учебного центра
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=uc-site
+Group=uc-site
+WorkingDirectory=/srv/uc-site
+EnvironmentFile=/srv/uc-site/.env
+Environment=BACKUP_DIR=/srv/uc-site/backups
+Environment=KEEP_DAYS=14
+ExecStart=/srv/uc-site/scripts/backup_db.sh

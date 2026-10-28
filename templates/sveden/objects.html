@@ -1,0 +1,69 @@
+{% extends "sveden/base_sveden.html" %}
+{% load ui %}
+{% block sveden_content %}
+
+<h2>Учебные кабинеты</h2>
+{% include "sveden/_facility_table.html" with items=facilities kind="cab" main="purposeCab" caption="Оборудованные учебные кабинеты" %}
+
+<h2>Объекты для проведения практических занятий</h2>
+{% include "sveden/_facility_table.html" with items=facilities kind="prac" main="purposePrac" caption="Объекты для проведения практических занятий" %}
+
+<h2>Библиотеки и объекты спорта</h2>
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide">
+    <caption class="visually-hidden">Библиотеки и объекты спорта</caption>
+    <thead><tr><th scope="col">Вид объекта</th><th scope="col">Наименование</th><th scope="col">Адрес</th><th scope="col">Приспособленность для инвалидов и лиц с ОВЗ</th></tr></thead>
+    <tbody>
+      {% for o in facilities %}{% if o.kind == "libr" or o.kind == "sport" %}
+      <tr itemprop="{% if o.kind == 'libr' %}purposeLibr{% else %}purposeSport{% endif %}">
+        <th scope="row" data-label="Вид объекта">{{ o.get_kind_display }}</th>
+        <td data-label="Наименование" itemprop="objName">{{ o.name }}{% if o.equipment %}<span class="t-sub">{{ o.equipment|linebreaksbr }}</span>{% endif %}</td>
+        <td data-label="Адрес" itemprop="objAddress">{{ o.address }}</td>
+        <td data-label="Для лиц с ОВЗ" itemprop="objOvz">{{ o.ovz|default:"Нет" }}</td>
+      </tr>
+      {% endif %}{% endfor %}
+      {% comment %}Если объекта нет — в админке заводится текстовое сведение с itemprop purposeLibr/purposeSport (напр. «Отсутствует»).{% endcomment %}
+      {% for f in fields %}{% if f.itemprop == "purposeLibr" or f.itemprop == "purposeSport" %}
+      <tr itemprop="{{ f.itemprop }}">
+        <th scope="row" data-label="Вид объекта">{{ f.label }}</th>
+        <td data-label="Наименование" itemprop="objName">{{ f.value|default:"Отсутствует" }}</td>
+        <td data-label="Адрес" itemprop="objAddress">Отсутствует</td>
+        <td data-label="Для лиц с ОВЗ" itemprop="objOvz">Отсутствует</td>
+      </tr>
+      {% endif %}{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2>Средства обучения, доступ к сетям, доступная среда</h2>
+{% for f in fields %}{% if f.itemprop == "purposeSport" or f.itemprop == "purposeLibr" %}{% elif f.itemprop|slice:":6" == "hostel" or f.itemprop|slice:":5" == "inter" %}{% elif f.itemprop == "erList" or f.itemprop == "erListOvz" %}
+{% comment %}ЭОР: по МР itemprop erList/erListOvz ставится на ссылку <a>. Ссылка — на документ с тем же itemprop
+(раздел «objects» в админке), если он есть, иначе — на этот блок страницы.{% endcomment %}
+{% with er_docs=docs|by_prop:f.itemprop %}
+<div class="svf" id="eor-{{ f.itemprop }}">
+  <h3 class="svf__label">{{ f.label }}</h3>
+  <div class="svf__value">{{ f.value|default:"Отсутствует"|linebreaksbr }}</div>
+  {% if er_docs %}
+  <ul class="doc-list doc-list--inline">{% for doc in er_docs %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div>{% if doc.link %}<a class="doc__title" href="{{ doc.link }}" itemprop="{{ f.itemprop }}">{{ doc.title }}</a>{% else %}<span class="doc__title" itemprop="{{ f.itemprop }}">{{ doc.title }} — отсутствует</span>{% endif %}{% if doc.signed %}<p class="doc__meta"><span class="doc__sign">{% icon "sign" %}Подписан ЭП{% if doc.signer %}: {{ doc.signer }}{% endif %}</span></p>{% endif %}</div></li>{% endfor %}</ul>
+  {% else %}
+  <p class="svf__link"><a href="#eor-{{ f.itemprop }}" itemprop="{{ f.itemprop }}">{{ f.label }}</a></p>
+  {% endif %}
+</div>
+{% endwith %}
+{% else %}{% include "sveden/_field.html" with f=f %}{% endif %}{% endfor %}
+
+<h2>Общежитие, интернат</h2>
+<div class="table-wrap">
+  <table class="t t--kv">
+    <caption class="visually-hidden">Общежития и интернаты</caption>
+    <tbody>
+      {% for f in fields %}{% if f.itemprop|slice:":6" == "hostel" and f.itemprop != "hostelInterOvz" or f.itemprop|slice:":5" == "inter" %}
+      <tr><th scope="row">{{ f.label }}</th><td itemprop="{{ f.itemprop }}">{{ f.value|default:"0" }}</td></tr>
+      {% endif %}{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% for f in fields %}{% if f.itemprop == "hostelInterOvz" %}{% include "sveden/_field.html" with f=f %}{% endif %}{% endfor %}
+
+{% if fields|by_prop:"erList,erListOvz" %}{% include "sveden/_docs.html" with docs=docs|exclude_props:"erList,erListOvz" %}{% else %}{% include "sveden/_docs.html" with docs=docs %}{% endif %}
+{% endblock %}

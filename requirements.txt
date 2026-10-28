@@ -1,0 +1,10 @@
+# Зависимости проекта (Python 3.12+). Установка: pip install -r requirements.txt
+Django==5.2.18
+uvicorn[standard]==0.54.0
+whitenoise==6.12.0
+dj-database-url==3.1.2
+python-dotenv==1.2.3
+httpx==0.28.1
+reportlab==5.0.1
+# Драйвер PostgreSQL для прода (DATABASE_URL=postgres://...)
+psycopg[binary]==3.2.13

@@ -1,0 +1,13 @@
+# Ежедневный бэкап в 03:30.
+#   sudo cp deploy/systemd/uc-site-backup.* /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now uc-site-backup.timer
+[Unit]
+Description=Ежедневный бэкап сайта учебного центра
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

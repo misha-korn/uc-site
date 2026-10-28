@@ -1,0 +1,38 @@
+# systemd-служба сайта (VPS без Docker).
+# Установка:
+#   sudo cp deploy/systemd/uc-site.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now uc-site
+# Логи: journalctl -u uc-site -f
+[Unit]
+Description=Сайт учебного центра (Django + uvicorn)
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=exec
+User=uc-site
+Group=uc-site
+WorkingDirectory=/srv/uc-site
+EnvironmentFile=/srv/uc-site/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=DJANGO_SETTINGS_MODULE=config.settings
+# За nginx: реальный IP посетителя берётся из X-Forwarded-For (его nginx перезаписывает)
+Environment=USE_X_FORWARDED_FOR=1
+# 1 воркер: лимит заявок хранится в памяти процесса (LocMemCache) и считается в каждом воркере отдельно
+ExecStart=/srv/uc-site/.venv/bin/uvicorn config.asgi:application \
+    --host 127.0.0.1 --port 8000 --workers 1 \
+    --proxy-headers --forwarded-allow-ips=127.0.0.1 --no-server-header
+Restart=always
+RestartSec=3
+TimeoutStopSec=20
+KillMode=mixed
+
+# Защита
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/srv/uc-site/media /srv/uc-site/backups
+
+[Install]
+WantedBy=multi-user.target

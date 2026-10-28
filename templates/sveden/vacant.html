@@ -1,0 +1,31 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<p class="muted">Количество вакантных мест для приёма (перевода) по каждой образовательной программе.</p>
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide">
+    <caption class="visually-hidden">Вакантные места для приёма (перевода) обучающихся</caption>
+    <thead><tr>
+      <th scope="col">Наименование программы</th><th scope="col">Код</th><th scope="col">Уровень образования</th><th scope="col">Направленность</th><th scope="col">Курс</th><th scope="col">Форма обучения</th>
+      <th scope="col" class="num">За счёт федерального бюджета</th><th scope="col" class="num">За счёт бюджета субъекта РФ</th><th scope="col" class="num">За счёт местного бюджета</th><th scope="col" class="num">По договорам об обучении</th>
+    </tr></thead>
+    <tbody>
+      {% for v in vacancies %}
+      <tr itemprop="vacant">
+        <td data-label="Программа" itemprop="eduName">{{ v.program.title }}</td>
+        <td data-label="Код" itemprop="eduCode">{{ v.program.code|default:"Нет" }}</td>
+        <td data-label="Уровень" itemprop="eduLevel">{{ v.program.level_display }}</td>
+        <td data-label="Направленность" itemprop="eduProf">{{ v.program.category.name }}</td>
+        <td data-label="Курс" itemprop="eduCourse">Нет</td>
+        <td data-label="Форма обучения" itemprop="eduForm">{{ v.program.form|default:"Очная" }}</td>
+        <td data-label="Фед. бюджет" class="num" itemprop="numberBFVacant">{{ v.fed }}</td>
+        <td data-label="Бюджет субъекта РФ" class="num" itemprop="numberBRVacant">{{ v.sub }}</td>
+        <td data-label="Местный бюджет" class="num" itemprop="numberBMVacant">{{ v.mest }}</td>
+        <td data-label="По договорам" class="num" itemprop="numberPVacant">{{ v.paid }}</td>
+      </tr>
+      {% empty %}
+      <tr itemprop="vacant"><td itemprop="eduCode">Отсутствует</td><td itemprop="eduName">Отсутствует</td><td itemprop="eduLevel">Отсутствует</td><td itemprop="eduProf">Отсутствует</td><td itemprop="eduCourse">Отсутствует</td><td itemprop="eduForm">Отсутствует</td><td itemprop="numberBFVacant">0</td><td itemprop="numberBRVacant">0</td><td itemprop="numberBMVacant">0</td><td itemprop="numberPVacant">0</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

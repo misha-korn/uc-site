@@ -1,0 +1,15 @@
+{% load ui %}{# Строка прайс-листа: {% include "core/_program_row.html" with p=program show_cat=True %} #}
+<li class="row-program">
+  <div class="row-program__main">
+    <p class="row-program__kind">{% if show_cat %}{{ p.category.name }}, {{ p.get_kind_display|lower }}{% else %}{{ p.get_kind_display }}{% endif %}</p>
+    <h3 class="row-program__title"><a href="{{ p.get_absolute_url }}">{{ p.title }}</a></h3>
+    {% if p.short %}<p class="row-program__short">{{ p.short|truncatechars:170 }}</p>{% endif %}
+    <ul class="row-program__facts">
+      <li>{% icon "clock" %}<span><span class="num">{{ p.hours }}</span> ак. ч{% if p.duration %}, {{ p.duration }}{% endif %}</span></li>
+    </ul>
+  </div>
+  <div class="row-program__price">
+    <span class="price">{{ p.price|floatformat:"0g" }}&nbsp;₽</span>
+    <span class="link-arrow row-program__more" aria-hidden="true">Подробнее {% icon "chevron" %}</span>
+  </div>
+</li>

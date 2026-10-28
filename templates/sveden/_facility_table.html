@@ -1,0 +1,29 @@
+{% comment %}Таблица объектов МТО одного вида. Параметры: items, kind, main (itemprop строки), caption.
+cab/prac: addressX, nameX, osnX, ovzX; libr/sport: objName, objAddress, objOvz (research/ITEMPROP.md).{% endcomment %}
+<div class="table-wrap table-wrap--stack">
+  <table class="t t--wide">
+    <caption class="visually-hidden">{{ caption }}</caption>
+    <thead><tr><th scope="col">Наименование</th><th scope="col">Адрес</th>{% if kind == "cab" or kind == "prac" %}<th scope="col">Оснащённость</th>{% endif %}<th scope="col">Приспособленность для инвалидов и лиц с ОВЗ</th></tr></thead>
+    <tbody>
+      {% for o in items %}{% if o.kind == kind %}
+      <tr itemprop="{{ main }}">
+        {% if kind == "cab" %}
+          <td data-label="Наименование" itemprop="nameCab"><strong>{{ o.name }}</strong></td>
+          <td data-label="Адрес" itemprop="addressCab">{{ o.address }}</td>
+          <td data-label="Оснащённость" itemprop="osnCab">{{ o.equipment|linebreaksbr }}</td>
+          <td data-label="Для лиц с ОВЗ" itemprop="ovzCab">{{ o.ovz|default:"Нет" }}</td>
+        {% elif kind == "prac" %}
+          <td data-label="Наименование" itemprop="namePrac"><strong>{{ o.name }}</strong></td>
+          <td data-label="Адрес" itemprop="addressPrac">{{ o.address }}</td>
+          <td data-label="Оснащённость" itemprop="osnPrac">{{ o.equipment|linebreaksbr }}</td>
+          <td data-label="Для лиц с ОВЗ" itemprop="ovzPrac">{{ o.ovz|default:"Нет" }}</td>
+        {% else %}
+          <td data-label="Наименование" itemprop="objName"><strong>{{ o.name }}</strong>{% if o.equipment %}<span class="t-sub">{{ o.equipment|linebreaksbr }}</span>{% endif %}</td>
+          <td data-label="Адрес" itemprop="objAddress">{{ o.address }}</td>
+          <td data-label="Для лиц с ОВЗ" itemprop="objOvz">{{ o.ovz|default:"Нет" }}</td>
+        {% endif %}
+      </tr>
+      {% endif %}{% endfor %}
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,14 @@
+{% extends "sveden/base_sveden.html" %}
+{% block sveden_content %}
+<h2 class="visually-hidden">Документы</h2>
+{% include "sveden/_docs.html" with docs=docs empty_prop="ustavDocLink" %}
+
+{% for f in fields %}{% if f.itemprop != "prescriptionDocLink" %}{% include "sveden/_field.html" with f=f %}{% endif %}{% endfor %}
+
+<h2>Предписания органов, осуществляющих государственный контроль (надзор) в сфере образования</h2>
+{% if prescriptions_text %}
+<p itemprop="prescriptionDocLink">{{ prescriptions_text }}</p>
+{% else %}
+<p class="muted">Предписания и отчёты об их исполнении — в списке документов выше.</p>
+{% endif %}
+{% endblock %}

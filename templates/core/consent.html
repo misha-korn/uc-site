@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Согласие на обработку персональных данных — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Текст согласия на обработку персональных данных при отправке заявки с сайта: цели, перечень данных, срок, порядок отзыва.{% endblock %}
+{% block og_title %}Согласие на обработку персональных данных{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      <li><span aria-current="page">Согласие на обработку персональных данных</span></li>
+    </ol></nav>
+    <h1>Согласие на обработку персональных данных</h1>
+  </div>
+</div>
+<div class="container legal">
+  {% include "legal/consent_text.html" %}
+</div>
+{% endblock %}

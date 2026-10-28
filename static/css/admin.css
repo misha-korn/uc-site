@@ -1,0 +1,23 @@
+/* Лёгкое оформление панели заказчика в цветах сайта */
+:root, html[data-theme="light"] {
+  --primary: #112840;
+  --secondary: #1a3a5c;
+  --accent: #ffb81c;
+  --primary-fg: #fff;
+  --header-color: #ffd36b;
+  --header-branding-color: #ffffff;
+  --header-bg: #112840;
+  --header-link-color: #ffffff;
+  --breadcrumbs-bg: #1a3a5c;
+  --link-fg: #134f8a;
+  --link-hover-color: #0b3763;
+  --link-selected-fg: #0b3763;
+  --button-bg: #112840;
+  --button-hover-bg: #1a3a5c;
+  --default-button-bg: #134f8a;
+  --default-button-hover-bg: #0b3763;
+  --selected-row: #fff6e0;
+}
+#header { border-bottom: 4px solid #ffb81c; }
+#site-name a { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; }
+.admin-site-link { color: #fff; margin-left: 16px; }

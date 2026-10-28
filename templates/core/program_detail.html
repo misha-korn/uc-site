@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load static ui %}
+{% block title %}{% if program.kind == "po" %}Обучение на {{ program.title|lower }} в Самаре — {{ program.price|floatformat:"0g" }} ₽{% elif program.kind == "pp" %}{{ program.title }}: профпереподготовка, диплом{% else %}{{ program.title }}: обучение в Самаре, {{ program.price|floatformat:"0g" }} ₽{% endif %} — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}{% if program.kind == "po" %}Профессиональное обучение «{{ program.title }}»{% if program.code %} (код {{ program.code }}){% endif %}: {{ program.hours }} ч, {{ program.duration }}. Свидетельство с разрядом. Практика на базе центра.{% else %}{{ program.short|truncatechars:110 }} {{ program.hours }} ч, {{ program.duration }}.{% endif %}{% endblock %}
+{% block og_title %}{{ program.title }}{% endblock %}
+{% block og_description %}{{ program.short|truncatechars:150 }}{% endblock %}
+{% block jsonld %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Course",
+  "name": "{{ program.title|escapejs }}",
+  "description": "{{ program.short|escapejs }}",
+  "url": "{{ request.scheme }}://{{ request.get_host }}{{ program.get_absolute_url }}",
+  {% if program.code %}"courseCode": "{{ program.code|escapejs }}",{% endif %}
+  "educationalCredentialAwarded": "{{ program.document_issued|escapejs }}",
+  "timeRequired": "PT{{ program.hours }}H",
+  "inLanguage": "ru",
+  "provider": {"@type": "EducationalOrganization", "name": "{{ org.full_name|default:'Учебный центр'|escapejs }}", "url": "{{ request.scheme }}://{{ request.get_host }}/"},
+  "offers": {"@type": "Offer", "price": "{{ program.price }}", "priceCurrency": "RUB", "category": "Paid", "availability": "https://schema.org/InStock"},
+  "hasCourseInstance": {"@type": "CourseInstance", "courseMode": "Blended"{% if org.address %}, "location": "{{ org.address|escapejs }}"{% endif %}}
+}
+</script>
+<script type="application/ld+json">
+{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
+  {"@type": "ListItem", "position": 1, "name": "Главная", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'core:home' %}"},
+  {"@type": "ListItem", "position": 2, "name": "Обучение", "item": "{{ request.scheme }}://{{ request.get_host }}{% url 'core:program_list' %}"},
+  {"@type": "ListItem", "position": 3, "name": "{{ program.category.name|escapejs }}", "item": "{{ request.scheme }}://{{ request.get_host }}{{ program.category.get_absolute_url }}"},
+  {"@type": "ListItem", "position": 4, "name": "{{ program.title|escapejs }}"}
+]}
+</script>
+{% endblock %}
+
+{% block body_class %}page-program{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      <li><a href="{% url 'core:program_list' %}">Обучение</a></li>
+      <li><a href="{{ program.category.get_absolute_url }}">{{ program.category.name }}</a></li>
+      <li><span aria-current="page">{{ program.title|truncatechars:60 }}</span></li>
+    </ol></nav>
+    <div class="program-head__kind"><span class="tile tile--sm">{% icon program.category.icon %}</span>{{ program.get_kind_display }}</div>
+    <h1>{{ program.title }}{% if program.kind == "po" %}: профессиональное обучение{% elif program.kind == "pp" %}: профессиональная переподготовка{% endif %}</h1>
+    {% if program.short %}<p class="lead">{{ program.short }}</p>{% endif %}
+  </div>
+</div>
+
+<div class="section section--tight">
+  <div class="container program-layout">
+    <div class="prose">
+      <dl class="facts">
+        <div><dt>Объём</dt><dd><span class="num">{{ program.hours }}</span> ак. ч</dd></div>
+        {% if program.duration %}<div><dt>Срок обучения</dt><dd>{{ program.duration }}</dd></div>{% endif %}
+        {% if program.form %}<div><dt>Форма обучения</dt><dd>{{ program.form }}</dd></div>{% endif %}
+        <div><dt>Документ</dt><dd>{{ program.document_issued }}</dd></div>
+        <div><dt>Уровень</dt><dd>{{ program.level_display }}{% if program.code %}, код профессии {{ program.code }}{% endif %}</dd></div>
+        <div><dt>Язык обучения</dt><dd>{{ program.language|default:"Русский" }}</dd></div>
+      </dl>
+
+      {% if program.description %}<h2>О программе</h2>{{ program.description|linebreaks }}{% endif %}
+      {% if program.audience %}<h2>Кому подходит</h2><p>{{ program.audience }}</p>{% endif %}
+      {% if program.disciplines_list %}
+        <h2>Модули программы</h2>
+        <ol class="modules">{% for m in program.disciplines_list %}<li>{{ m }}</li>{% endfor %}</ol>
+      {% endif %}
+      {% if program.practice %}<h2>Практика</h2><div class="callout">{{ program.practice|linebreaks }}</div>{% endif %}
+
+      {% if program.op_file or program.plan_file or program.schedule_file or program.rpd_file or program.methodology_file %}
+        <h2>Документы программы</h2>
+        <ul class="doc-list">
+          {% if program.op_file %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div><a class="doc__title" href="{{ program.op_file.url }}">Образовательная программа «{{ program.title }}» (PDF)</a></div></li>{% endif %}
+          {% if program.plan_file %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div><a class="doc__title" href="{{ program.plan_file.url }}">Учебный план<span class="visually-hidden">: {{ program.title }}</span> (PDF)</a></div></li>{% endif %}
+          {% if program.schedule_file %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div><a class="doc__title" href="{{ program.schedule_file.url }}">Календарный учебный график<span class="visually-hidden">: {{ program.title }}</span> (PDF)</a></div></li>{% endif %}
+          {% if program.rpd_file %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div><a class="doc__title" href="{{ program.rpd_file.url }}">Рабочие программы дисциплин (модулей)<span class="visually-hidden">: {{ program.title }}</span> (PDF)</a></div></li>{% endif %}
+          {% if program.methodology_file %}<li class="doc"><span class="doc__icon">{% icon "pdf" %}</span><div><a class="doc__title" href="{{ program.methodology_file.url }}">Методические материалы<span class="visually-hidden">: {{ program.title }}</span> (PDF)</a></div></li>{% endif %}
+        </ul>
+      {% endif %}
+    </div>
+
+    <aside class="program-aside" aria-label="Стоимость и запись">
+      <div class="buy-card">
+        <span class="muted">Стоимость за одного слушателя</span>
+        <span class="price">{{ program.price|floatformat:"0g" }}&nbsp;₽</span>
+        <p class="buy-card__note">Скидка 10&nbsp;% для групп от 5 человек.</p>
+        <a class="btn btn--block" href="#zayavka">Записаться на обучение</a>
+        {% if org.phone_list %}<a class="btn btn--ghost btn--block" href="{{ org.phone_list.0.href }}">{% icon "phone" %}{{ org.phone_list.0.text }}</a>{% endif %}
+        <ul>
+          <li>{% icon "check" %}Договор и счёт — в течение рабочего дня</li>
+          <li>{% icon "check" %}Оплата картой или по счёту</li>
+          {% if program.kind == "ot" %}<li>{% icon "check" %}Внесём сведения в реестр обученных Минтруда</li>{% endif %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+</div>
+
+{# Мобильная липкая панель записи (< 768px, без JS). Под неё у body.page-program отступ снизу — футер не перекрывается. #}
+<div class="buy-bar on-dark">
+  <p class="buy-bar__price"><span class="buy-bar__label">За слушателя</span><span class="price">{{ program.price|floatformat:"0g" }}&nbsp;₽</span></p>
+  <a class="btn buy-bar__btn" href="#zayavka">Записаться<span class="visually-hidden"> на программу «{{ program.title }}»</span></a>
+</div>
+
+<section class="section section--white" id="zayavka" aria-labelledby="lead-title">
+  <div class="container">
+    <div class="form-card form-card--narrow">
+      <h2 id="lead-title">Записаться на обучение</h2>
+      <p class="muted">Программа уже выбрана. Перезвоним, уточним даты и пришлём договор.</p>
+      {% include "core/_lead_form.html" with form=lead_form %}
+    </div>
+  </div>
+</section>
+
+{% if related %}
+<section class="section" aria-labelledby="rel-title">
+  <div class="container">
+    <div class="section__head"><h2 id="rel-title">Похожие программы</h2><a class="link-arrow" href="{{ program.category.get_absolute_url }}">Все программы направления {% icon "chevron" %}</a></div>
+    <ul class="price-list">{% for p in related %}{% include "core/_program_row.html" with p=p %}{% endfor %}</ul>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

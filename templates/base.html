@@ -1,0 +1,177 @@
+{% load static ui %}<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {# Применяет настройки «Версии для слабовидящих» до отрисовки (без inline-скриптов — CSP) #}
+  <script src="{% static 'js/a11y-early.js' %}"></script>
+  {% with brand=org.short_name|default:"Учебный центр" %}
+  <title>{% block title %}{{ brand }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}Обучение по охране труда, пожарной безопасности, первой помощи и рабочим профессиям. Лицензия, реестр Минтруда, выезд на предприятие.{% endblock %}">
+  {% if site_demo %}<meta name="robots" content="noindex, nofollow">{% else %}{% block robots %}{% endblock %}{% endif %}
+  <link rel="canonical" href="{% block canonical %}{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}{% endblock %}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ru_RU">
+  <meta property="og:site_name" content="{{ brand }}">
+  <meta property="og:title" content="{% block og_title %}{{ brand }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Обучение по охране труда, пожарной безопасности и рабочим профессиям.{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{% if canonical_url %}{{ canonical_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.get_full_path }}{% endif %}{% endblock %}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/og.png' %}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="theme-color" content="#112840">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+  <link rel="preload" href="{% static 'fonts/golos-text-cyrillic-wght-normal.woff2' %}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% if org %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "{{ org.full_name|escapejs }}",
+    "alternateName": "{{ org.short_name|escapejs }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}/",
+    "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.svg' %}",
+    {% if org.phone_list %}"telephone": "{{ org.phone_list.0.text|escapejs }}",{% endif %}
+    {% if org.email_list %}"email": "{{ org.email_list.0.text|escapejs }}",{% endif %}
+    {% if org.reg_date %}"foundingDate": "{{ org.reg_date|date:'Y-m-d' }}",{% endif %}
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "{{ org.address|escapejs }}",
+      "addressCountry": "RU"
+    }
+  }
+  </script>
+  {% endif %}
+  {% block jsonld %}{% endblock %}
+  {% block extra_head %}{% endblock %}
+  {% endwith %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="skip-link" href="#main">Перейти к основному содержанию</a>
+
+  {# Панель версии для слабовидящих: видна, когда на <html> есть класс a11y (включает site.js) #}
+  <div class="a11y-panel" id="a11y-panel" role="region" aria-label="Настройки версии для слабовидящих">
+    <div class="container a11y-panel__inner">
+      <div class="a11y-group" role="group" aria-labelledby="a11y-fs-l">
+        <span class="a11y-group__label" id="a11y-fs-l">Размер шрифта</span>
+        <button type="button" class="a11y-btn a11y-btn--fs1" data-a11y="fs" data-value="1" aria-pressed="false" aria-label="Шрифт: обычный">А</button>
+        <button type="button" class="a11y-btn a11y-btn--fs2" data-a11y="fs" data-value="2" aria-pressed="false" aria-label="Шрифт: крупный">А</button>
+        <button type="button" class="a11y-btn a11y-btn--fs3" data-a11y="fs" data-value="3" aria-pressed="false" aria-label="Шрифт: очень крупный">А</button>
+      </div>
+      <div class="a11y-group" role="group" aria-labelledby="a11y-cs-l">
+        <span class="a11y-group__label" id="a11y-cs-l">Цвет</span>
+        <button type="button" class="a11y-btn a11y-btn--cs a11y-btn--bw" data-a11y="cs" data-value="bw" aria-pressed="false" aria-label="Чёрным по белому">Ц</button>
+        <button type="button" class="a11y-btn a11y-btn--cs a11y-btn--wb" data-a11y="cs" data-value="wb" aria-pressed="false" aria-label="Белым по чёрному">Ц</button>
+        <button type="button" class="a11y-btn a11y-btn--cs a11y-btn--blue" data-a11y="cs" data-value="blue" aria-pressed="false" aria-label="Тёмно-синим по голубому">Ц</button>
+      </div>
+      <div class="a11y-group" role="group" aria-labelledby="a11y-other-l">
+        <span class="a11y-group__label" id="a11y-other-l">Ещё</span>
+        <button type="button" class="a11y-btn" data-a11y="noimg" aria-pressed="false">Без изображений</button>
+        <button type="button" class="a11y-btn" data-a11y="ls" aria-pressed="false">Широкий интервал</button>
+      </div>
+      <button type="button" class="a11y-btn" data-a11y="off">Обычная версия</button>
+    </div>
+  </div>
+
+  {% if site_demo %}
+  <div class="demo-bar" role="note"><div class="container"><strong>Демо-версия сайта.</strong> Организация и все данные вымышлены.</div></div>
+  {% endif %}
+
+  {% with ns=request.resolver_match.namespace url_name=request.resolver_match.url_name %}
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container header-top__row">
+        <p class="header-top__note">{% if org.license_number %}Лицензия на образовательную деятельность № {{ org.license_number }}{% else %}Учебный центр{% endif %}</p>
+        {% if org.phone_list %}<a class="header-top__phone" href="{{ org.phone_list.0.href }}">{% icon "phone" %}{{ org.phone_list.0.text }}</a>{% endif %}
+        <a href="#" class="a11y-link" itemprop="copy" id="a11y-toggle" aria-controls="a11y-panel">{% icon "eye" %}<span class="a11y-link__text">Версия для слабовидящих</span></a>
+      </div>
+    </div>
+    <div class="container header-row">
+      <a class="brand" href="{% url 'core:home' %}"{% if ns == "core" and url_name == "home" %} aria-current="page"{% endif %}>
+        {% include "core/_logo.html" %}
+        <span class="brand__name">
+          <span class="brand__title">{{ org.short_name|default:"Учебный центр" }}</span>
+          <span class="brand__sub">Охрана труда и рабочие профессии</span>
+        </span>
+      </a>
+
+      <nav class="nav-main" aria-label="Главное меню">
+        <ul>
+          <li><a href="{% url 'core:home' %}"{% if ns == "core" and url_name == "home" %} aria-current="page"{% endif %}>Главная</a></li>
+          <li><a href="{% url 'core:program_list' %}"{% if url_name == "program_list" %} aria-current="page"{% elif url_name == "program_detail" %} class="is-active"{% endif %}>Обучение</a></li>
+          <li><a href="{% url 'sveden:index' %}"{% if ns == "sveden" and url_name == "index" %} aria-current="page"{% elif ns == "sveden" %} class="is-active"{% endif %}>Сведения об образовательной организации</a></li>
+          <li><a href="{% url 'core:contacts' %}"{% if url_name == "contacts" %} aria-current="page"{% endif %}>Контакты</a></li>
+        </ul>
+      </nav>
+
+      <a class="btn btn--sm header-cta" href="{% url 'core:lead_create' %}">Записаться</a>
+
+      <details class="nav-mobile">
+        <summary class="header-icon-btn" aria-label="Меню">{% icon "menu" %}{% icon "close" %}</summary>
+        <nav class="nav-mobile__panel" aria-label="Главное меню">
+          <ul>
+            <li><a href="{% url 'core:home' %}"{% if ns == "core" and url_name == "home" %} aria-current="page"{% endif %}>Главная {% icon "chevron" %}</a></li>
+            <li><a href="{% url 'core:program_list' %}"{% if url_name == "program_list" %} aria-current="page"{% endif %}>Обучение {% icon "chevron" %}</a></li>
+            <li><a href="{% url 'sveden:index' %}"{% if ns == "sveden" and url_name == "index" %} aria-current="page"{% endif %}>Сведения об образовательной организации {% icon "chevron" %}</a></li>
+            <li><a href="{% url 'core:contacts' %}"{% if url_name == "contacts" %} aria-current="page"{% endif %}>Контакты {% icon "chevron" %}</a></li>
+          </ul>
+          <div class="nav-mobile__contacts">
+            {% for p in org.phone_list %}<a class="header-phone" href="{{ p.href }}">{{ p.text }}</a>{% endfor %}
+            <a class="btn btn--block" href="{% url 'core:lead_create' %}">Оставить заявку</a>
+          </div>
+        </nav>
+      </details>
+    </div>
+  </header>
+  {% endwith %}
+
+  <main id="main" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer on-dark">
+    <div class="container footer-grid">
+      <div class="footer-req">
+        <div class="footer-brand">{% include "core/_logo.html" %}<span>{{ org.short_name|default:"Учебный центр" }}</span></div>
+        {% if org %}
+          <p>{{ org.full_name }}</p>
+          <p>{{ org.address }}</p>
+          <p>ИНН {{ org.inn }}, ОГРН {{ org.ogrn }}</p>
+          {% if org.license_number %}<p>Лицензия на образовательную деятельность № {{ org.license_number }}{% if org.license_date %} от {{ org.license_date|date:"d.m.Y" }}{% endif %}{% if org.license_issuer %}, выдана: {{ org.license_issuer }}{% endif %}</p>{% endif %}
+        {% else %}
+          <p>Сведения об организации заполняются.</p>
+        {% endif %}
+      </div>
+      <div>
+        <h2>Связаться</h2>
+        <ul>
+          {% for p in org.phone_list %}<li><a class="footer-phone" href="{{ p.href }}">{{ p.text }}</a></li>{% endfor %}
+          {% for e in org.email_list %}<li><a href="{{ e.href }}">{{ e.text }}</a></li>{% endfor %}
+          {% if org.work_time %}<li>{{ org.work_time|linebreaksbr }}</li>{% endif %}
+        </ul>
+        <h2 class="footer-h-gap">Сайт</h2>
+        <ul>
+          <li><a href="{% url 'core:program_list' %}">Программы обучения</a></li>
+          <li><a href="{% url 'core:contacts' %}">Контакты</a></li>
+          <li><a href="{% url 'core:privacy' %}">Политика обработки персональных данных</a></li>
+          <li><a href="{% url 'core:consent' %}">Согласие на обработку персональных данных</a></li>
+        </ul>
+      </div>
+      <nav class="footer-sveden" aria-label="Сведения об образовательной организации">
+        <h2><a href="{% url 'sveden:index' %}">Сведения об образовательной организации</a></h2>
+        <ul>
+          {% for s in sveden_sections %}<li><a href="{{ s.url }}">{{ s.title }}</a></li>{% endfor %}
+        </ul>
+      </nav>
+    </div>
+    <div class="container footer-bottom">
+      <p>© {% now "Y" %} {{ org.short_name|default:"Учебный центр" }}{% if site_demo %}. Демо-версия: данные вымышлены{% endif %}</p>
+      <p><a href="#" class="a11y-footer-toggle" data-a11y-toggle>Версия для слабовидящих</a></p>
+    </div>
+  </footer>
+
+  <script src="{% static 'js/site.js' %}" defer></script>
+</body>
+</html>

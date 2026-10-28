@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Политика обработки персональных данных — {{ org.short_name|default:"Учебный центр" }}{% endblock %}
+{% block description %}Как {{ org.short_name|default:"учебный центр" }} собирает, хранит и защищает персональные данные. Права субъекта и порядок отзыва согласия.{% endblock %}
+{% block og_title %}Политика обработки персональных данных{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <div class="container">
+    <nav class="crumbs" aria-label="Хлебные крошки"><ol>
+      <li><a href="{% url 'core:home' %}">Главная</a></li>
+      <li><span aria-current="page">Политика обработки персональных данных</span></li>
+    </ol></nav>
+    <h1>Политика обработки персональных данных</h1>
+  </div>
+</div>
+<div class="container legal">
+  {% include "legal/privacy_text.html" %}
+</div>
+{% endblock %}

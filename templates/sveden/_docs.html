@@ -1,0 +1,20 @@
+{% load ui %}{% comment %} Список документов: { % include "sveden/_docs.html" with docs=docs %}.
+   Подпись ссылки = назначение файла (п. 4 Требований); itemprop берётся из doc.itemprop. {% endcomment %}
+{% if docs %}
+<ul class="doc-list">
+  {% for doc in docs %}
+  <li class="doc">
+    <span class="doc__icon">{% icon "pdf" %}</span>
+    <div>
+      {% if doc.link %}<a class="doc__title" href="{{ doc.link }}"{% if doc.itemprop %} itemprop="{{ doc.itemprop }}"{% endif %}>{{ doc.title }}</a>{% else %}<span class="doc__title"{% if doc.itemprop %} itemprop="{{ doc.itemprop }}"{% endif %}>{{ doc.title }} — отсутствует</span>{% endif %}
+      <p class="doc__meta">
+        {% if doc.number or doc.doc_date %}<span>{% if doc.number %}№ {{ doc.number }}{% endif %}{% if doc.number and doc.doc_date %} {% endif %}{% if doc.doc_date %}от {{ doc.doc_date|date:"d.m.Y" }}{% endif %}</span>{% endif %}
+        {% if doc.signed %}<span class="doc__sign">{% icon "sign" %}Подписан ЭП{% if doc.signer %}: {{ doc.signer }}{% endif %}{% if doc.signed_at %}, {{ doc.signed_at|date:"d.m.Y" }}{% endif %}</span>{% endif %}
+      </p>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% elif empty_prop %}
+<p class="muted"><span itemprop="{{ empty_prop }}">Отсутствует</span>. Документы будут размещены после утверждения.</p>
+{% endif %}

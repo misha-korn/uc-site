@@ -4,6 +4,23 @@ set -eu
 
 cd /app
 
+# Если контейнер запущен от root (PaaS с постоянным диском): готовим папки для SQLite и
+# загруженных файлов, отдаём их пользователю app и перезапускаем этот же скрипт от его имени.
+if [ "$(id -u)" = "0" ] && id app >/dev/null 2>&1; then
+  for dir in "${MEDIA_ROOT:-/app/media}" "${STATIC_ROOT:-/app/staticfiles}"; do
+    mkdir -p "$dir" && chown -R app:app "$dir"
+  done
+  case "${DATABASE_URL:-}" in
+    sqlite:///*)
+      db_file="${DATABASE_URL#sqlite://}"
+      mkdir -p "$(dirname "$db_file")"
+      chown app:app "$(dirname "$db_file")"
+      if [ -f "$db_file" ]; then chown app:app "$db_file"; fi
+      ;;
+  esac
+  exec setpriv --reuid=app --regid=app --init-groups "$0" "$@"
+fi
+
 if [ -n "${DATABASE_URL:-}" ]; then
   echo "[entrypoint] Ожидание базы данных..."
   python - <<'PY'

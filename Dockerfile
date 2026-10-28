@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.7
 # =====================================================================
 #  Сайт учебного центра — образ приложения (Django + uvicorn).
 #  Сборка:  docker build -t uc-site .
@@ -57,8 +56,8 @@ RUN SECRET_KEY=build-only-not-secret DEBUG=0 ALLOWED_HOSTS=localhost DATABASE_UR
  && chown -R app:app /app/media /app/staticfiles \
  && rm -f /tmp/build.sqlite3
 
-USER app
-
+# Контейнер стартует от root только для подготовки папок на постоянном диске
+# (на PaaS вроде Amvera /data принадлежит root); entrypoint сразу переходит на пользователя app.
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \

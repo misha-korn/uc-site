@@ -11,6 +11,7 @@ python-dotenv). Список переменных — в CONTRACT.md, п. 10, и
 """
 
 import os
+import sys
 from pathlib import Path
 
 import dj_database_url
@@ -188,7 +189,9 @@ STORAGES = {
     "staticfiles": {
         "BACKEND": (
             "django.contrib.staticfiles.storage.StaticFilesStorage"
-            if DEBUG
+            # Тесты не собирают статику (collectstatic) — им манифест не нужен,
+            # иначе локальный .env с DEBUG=0 роняет все тесты рендера.
+            if DEBUG or "test" in sys.argv[1:2]
             else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         ),
     },

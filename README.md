@@ -285,7 +285,10 @@ Windows: `scripts\export_static.bat`.
 
 ## 8. Развёртывание на сервере
 
-Подробная пошаговая инструкция — **[DEPLOY.md](DEPLOY.md)**:
+**Без сервера, nginx и certbot** — облачная платформа (Amvera, данные в РФ; демо — Render бесплатно):
+HTTPS и домен выдаёт платформа, деплой — `git push`. Пошагово: **[docs/DEPLOY_PAAS.md](docs/DEPLOY_PAAS.md)**.
+
+Свой сервер — подробная инструкция **[DEPLOY.md](DEPLOY.md)**:
 - **VPS + Docker Compose** (PostgreSQL 16 + сайт + nginx) — проще всего;
 - **VPS без Docker** — systemd-служба `deploy/systemd/uc-site.service` + nginx `deploy/nginx/uc-site.conf` + certbot;
 - **обычный хостинг с Python** (Beget, Timeweb) — через Passenger/WSGI;

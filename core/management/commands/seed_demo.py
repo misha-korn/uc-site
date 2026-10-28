@@ -144,6 +144,7 @@ class Command(BaseCommand):
                 self.generate_department_clauses(departments)
 
         self.create_admin()
+        self.create_viewer()
         self.stdout.write(
             self.style.SUCCESS(
                 f"Демо-данные загружены: программ {Program.objects.count()}, "
@@ -358,3 +359,33 @@ class Command(BaseCommand):
         user.set_password(password)
         user.save()
         self.stdout.write(f"Пользователь admin {'создан' if created else 'обновлён'}.")
+
+    # --- гостевой вход в панель для показа заказчику ---------------------------
+    def create_viewer(self):
+        """Пользователь demo с правом только ПРОСМОТРА панели (env DEMO_VIEWER_PASSWORD).
+
+        Нужен, чтобы показать заказчику панель управления на демо-стенде:
+        он видит все разделы, но ничего не может изменить или удалить.
+        Создаётся только при SITE_DEMO=1.
+        """
+        password = os.environ.get("DEMO_VIEWER_PASSWORD", "")
+        if not password:
+            return
+        if not settings.SITE_DEMO:
+            self.stderr.write(self.style.WARNING("DEMO_VIEWER_PASSWORD игнорируется: SITE_DEMO=0."))
+            return
+        from django.contrib.auth.models import Permission
+
+        User = get_user_model()
+        user, created = User.objects.get_or_create(username="demo", defaults={"email": ""})
+        user.is_staff = True
+        user.is_superuser = False
+        user.is_active = True
+        user.set_password(password)
+        user.save()
+        # Заявки (персональные данные посетителей) гостю не показываем.
+        view_perms = Permission.objects.filter(
+            content_type__app_label__in=["core", "sveden"], codename__startswith="view_"
+        ).exclude(codename="view_lead")
+        user.user_permissions.set(view_perms)
+        self.stdout.write(f"Гостевой пользователь demo {'создан' if created else 'обновлён'} (только просмотр).")

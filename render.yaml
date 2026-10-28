@@ -1,0 +1,32 @@
+# Бесплатный демо-стенд на Render (render.com): New → Blueprint → выбрать этот репозиторий.
+# ВНИМАНИЕ: на бесплатном тарифе диск временный — база и файлы пересоздаются при каждом
+# перезапуске (демо-данные загружаются заново), сервис засыпает после 15 минут без посещений.
+# Для настоящего сайта используйте Amvera (данные в РФ, постоянный диск) — docs/DEPLOY_PAAS.md.
+services:
+  - type: web
+    name: uc-site-demo
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /robots.txt
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "0"
+      - key: SITE_DEMO
+        value: "1"
+      - key: SEED_DEMO
+        value: "1"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: SITE_URL
+        sync: false
+      - key: DATABASE_URL
+        value: "sqlite:////tmp/uc-data/db.sqlite3"
+      - key: MEDIA_ROOT
+        value: "/tmp/uc-data/media"
+      - key: USE_X_FORWARDED_FOR
+        value: "1"
+      - key: DEMO_VIEWER_PASSWORD
+        sync: false

@@ -1,0 +1,16 @@
+# Деплой на Amvera Cloud (amvera.ru): сборка по Dockerfile из корня репозитория.
+# Постоянный диск монтируется в /data — там живут SQLite-база и загруженные файлы.
+# Переменные окружения задаются в интерфейсе Amvera (см. docs/DEPLOY_PAAS.md).
+meta:
+  environment: docker
+  toolchain:
+    name: docker
+    version: latest
+
+build:
+  dockerfile: Dockerfile
+  skip: false
+
+run:
+  persistenceMount: /data
+  containerPort: 8000

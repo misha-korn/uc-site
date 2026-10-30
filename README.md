@@ -121,7 +121,7 @@ docker compose up -d --build
 docker compose exec web python manage.py seed_demo          # демо-данные (по желанию)
 docker compose exec web python manage.py createsuperuser
 ```
-Сайт будет на http://localhost/ (порт — `HTTP_PORT` в `.env`).
+Сайт будет на http://localhost/ (nginx в Docker слушает 80 и 443; HTTPS включается сам после certbot — DEPLOY.md, A5).
 
 ---
 

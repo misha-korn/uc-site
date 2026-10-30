@@ -1,0 +1,24 @@
+# РЕЖИМ HTTP: сертификата ещё нет. Сайт работает по http://, certbot может пройти проверку.
+# Как только появится /etc/letsencrypt/live/${SITE_DOMAIN}/fullchain.pem — nginx сам
+# переключится на https.conf.template (проверка раз в минуту, см. 40-uc-site.sh).
+include /etc/nginx/uc-site/common.conf;
+
+server {
+    listen 80 default_server;
+    server_name _;
+
+    # Проверка домена Let's Encrypt: файлы кладёт certbot на хосте в /var/www/html
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/html;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location = /nginx-health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    include /etc/nginx/uc-site/locations.conf;
+}

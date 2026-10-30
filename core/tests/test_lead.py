@@ -130,6 +130,7 @@ class LeadCreateViewTests(TestCase):
         # Другой IP — не ограничен.
         self.assertEqual(self.client.post(URL, valid_data(), REMOTE_ADDR="10.0.0.6").status_code, 302)
 
+    @override_settings(USE_X_FORWARDED_FOR=False)  # в контейнере env ставит 1 — тест про значение по умолчанию
     def test_x_forwarded_for_ignored_by_default(self):
         for _ in range(5):
             self.client.post(URL, valid_data(), REMOTE_ADDR="10.0.0.7", HTTP_X_FORWARDED_FOR=f"1.1.1.{_}")

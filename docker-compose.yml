@@ -3,7 +3,8 @@
 #  1) cp .env.example .env  и заполнить (SECRET_KEY, DEBUG=0, ALLOWED_HOSTS, POSTGRES_PASSWORD...)
 #  2) docker compose up -d --build
 #  3) docker compose exec web python manage.py createsuperuser
-#  Сайт: http://localhost (порт меняется переменной HTTP_PORT в .env)
+#  HTTPS: sudo certbot certonly --webroot -w /var/www/html -d ДОМЕН -d www.ДОМЕН
+#  (nginx сам переключится на https в течение минуты — см. DEPLOY.md «Docker + HTTPS»)
 # =====================================================================
 name: uc-site
 
@@ -31,6 +32,7 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
+      DEBUG: "0"   # на сервере всегда 0, даже если в .env забыли поменять
       DATABASE_URL: postgres://${POSTGRES_USER:-uc_user}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-uc_site}
       PORT: "8000"
       WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
@@ -51,11 +53,19 @@ services:
     depends_on:
       web:
         condition: service_healthy
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?Задайте SITE_DOMAIN в .env, например indiga.ru}
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./deploy/nginx/docker.conf:/etc/nginx/conf.d/default.conf:ro
+      # Конфиг выбирается автоматически: без сертификата — HTTP, с сертификатом — HTTPS
+      - ./deploy/nginx/docker/40-uc-site.sh:/docker-entrypoint.d/40-uc-site.sh:ro
+      - ./deploy/nginx/docker:/etc/nginx/uc-site:ro
       - ./deploy/nginx/snippets:/etc/nginx/snippets:ro
+      # Сертификаты и папка проверки certbot — с хоста (certbot ставится на хост)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - /var/www/html:/var/www/html:ro
       - static:/app/staticfiles:ro
       - media:/app/media:ro
     healthcheck:

@@ -235,9 +235,9 @@ class DeployFilesTests(TestCase):
         self.assertNotIn("unsafe-inline", snippet)
 
     def test_nginx_login_rate_limit(self):
-        for rel in ("deploy/nginx/uc-site.conf", "deploy/nginx/docker.conf"):
-            with self.subTest(conf=rel):
-                conf = self.read(rel)
+        for rels in (("deploy/nginx/uc-site.conf",), ("deploy/nginx/docker/common.conf", "deploy/nginx/docker/locations.conf")):
+            with self.subTest(conf=rels):
+                conf = "\n".join(self.read(rel) for rel in rels)
                 self.assertIn("limit_req_zone $binary_remote_addr zone=login:10m rate=5r/m;", conf)
                 self.assertIn("location = /admin/login/ {", conf)
                 self.assertIn("limit_req zone=login burst=5 nodelay;", conf)
@@ -249,6 +249,7 @@ class DeployFilesTests(TestCase):
         env = {
             **os.environ, "DEBUG": "0", "SECRET_KEY": "test-" + "k" * 50, "ALLOWED_HOSTS": "example.com",
             "SECURE_SSL_REDIRECT": "1", "SITE_URL": "https://example.com", "SITE_DEMO": "0",
+            "SKIP_DOTENV": "1",  # не читать локальный .env разработчика
         }
         env.pop("SECURE_HSTS_PRELOAD", None)
         code = "import django; django.setup(); from django.conf import settings; print(settings.SECURE_HSTS_PRELOAD)"

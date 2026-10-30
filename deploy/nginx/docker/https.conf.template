@@ -1,0 +1,48 @@
+# РЕЖИМ HTTPS: сертификат для ${SITE_DOMAIN} найден.
+include /etc/nginx/uc-site/common.conf;
+
+# 80 порт: проверки Let's Encrypt (продление) и перевод всех на https://${SITE_DOMAIN}
+server {
+    listen 80 default_server;
+    server_name _;
+
+    location ^~ /.well-known/acme-challenge/ {
+        root /var/www/html;
+        default_type text/plain;
+        try_files $uri =404;
+    }
+
+    location = /nginx-health {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok\n";
+    }
+
+    location / {
+        return 301 https://${SITE_DOMAIN}$request_uri;
+    }
+}
+
+# Общие настройки TLS
+ssl_certificate     /etc/letsencrypt/live/${SITE_DOMAIN}/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/${SITE_DOMAIN}/privkey.pem;
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_prefer_server_ciphers off;
+ssl_session_cache shared:SSL:10m;
+ssl_session_timeout 1d;
+ssl_session_tickets off;
+
+# www и любые другие имена → https://${SITE_DOMAIN}
+server {
+    listen 443 ssl http2 default_server;
+    server_name _;
+    return 301 https://${SITE_DOMAIN}$request_uri;
+}
+
+# Основной сайт
+server {
+    listen 443 ssl http2;
+    server_name ${SITE_DOMAIN};
+
+    include /etc/nginx/uc-site/locations.conf;
+}

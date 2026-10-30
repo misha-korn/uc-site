@@ -56,10 +56,12 @@ CSRF_TRUSTED_ORIGINS=https://example.ru,https://www.example.ru
 SITE_URL=https://example.ru
 SITE_DEMO=0
 POSTGRES_PASSWORD=<длинный пароль базы>
-SECURE_SSL_REDIRECT=1
+SITE_DOMAIN=example.ru
+SECURE_SSL_REDIRECT=0
 SECURE_HSTS_SECONDS=3600
-HTTP_PORT=8080
 ```
+`SECURE_SSL_REDIRECT=0` — так и оставляйте: на HTTPS переводит nginx, а Django при этом не мешает
+проверке certbot.
 `DATABASE_URL` в Docker задавать **не нужно** — он собирается из `POSTGRES_*`.
 `USE_X_FORWARDED_FOR=1` docker-compose ставит сам (сайт стоит за nginx).
 `SITE_DEMO=0` — значение по умолчанию в `.env.example`; `SITE_DEMO=1` ставьте **только на демо-стенде**
@@ -85,34 +87,29 @@ docker compose exec web python manage.py createsuperuser   # логин в /admi
 (admin не создаётся). `seed_demo --reset` на сайте с `SITE_DEMO=0` требует флаг `--force` — защита от
 случайного удаления всех сведений.
 
-### A5. HTTPS
-Контейнер nginx слушает HTTP на порту `HTTP_PORT` (выше — 8080). Сертификат удобнее всего получить
-системным nginx на самом сервере, который будет проксировать на 8080:
-```bash
-apt install -y nginx certbot python3-certbot-nginx
-cat > /etc/nginx/sites-available/uc-site.conf <<'EOF'
-server {
-    listen 80;
-    server_name example.ru www.example.ru;
-    client_max_body_size 20m;
-    location / {
-        proxy_pass http://127.0.0.1:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $remote_addr;
-    }
-}
-EOF
-ln -s /etc/nginx/sites-available/uc-site.conf /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-certbot --nginx -d example.ru -d www.example.ru --redirect -m ваш@email.ru --agree-tos
-```
-Порт 8080 закройте снаружи файрволом (см. «Безопасность сервера»).
+### A5. HTTPS (один nginx в Docker, сертификат certbot)
+nginx в Docker слушает 80 и 443 и **сам выбирает режим** (скрипт `deploy/nginx/docker/40-uc-site.sh`):
+- сертификата для `SITE_DOMAIN` ещё нет → сайт работает по `http://`, а `/.well-known/acme-challenge/`
+  раздаётся из `/var/www/html` хоста — certbot проходит проверку;
+- сертификат появился → не позже чем через минуту nginx переключается на HTTPS: `http://` и `www` →
+  `https://ДОМЕН`, HTTP/2, TLS 1.2/1.3. Продлённый сертификат подхватывается так же, без перезапуска.
 
-> Внешний nginx передаёт `X-Forwarded-Proto: https`, nginx в контейнере пробрасывает его в Django —
-> так Django понимает, что запрос пришёл по HTTPS (иначе при `SECURE_SSL_REDIRECT=1` будет бесконечный редирект).
+Один раз на сервере:
+```bash
+sudo apt install -y certbot                       # nginx на хосте НЕ нужен
+sudo systemctl disable --now nginx 2>/dev/null    # если ставили — освободить порты 80/443
+sudo mkdir -p /var/www/html
+```
+DNS: A-записи `@` и `www` → IP сервера (`dig +short example.ru`, `dig +short www.example.ru`).
+
+После `docker compose up -d --build`:
+```bash
+sudo certbot certonly --webroot -w /var/www/html -d example.ru -d www.example.ru \
+  -m ваш@email.ru --agree-tos --no-eff-email
+docker compose logs nginx | tail -3       # через минуту: «режим nginx: https»
+sudo certbot renew --dry-run              # проверка автопродления (таймер certbot на хосте)
+```
+Нет записи `www` в DNS — уберите `-d www.example.ru`.
 
 ### A6. Обновление сайта
 ```bash
@@ -212,7 +209,7 @@ CSP и Permissions-Policy ставит сам Django), передаёт в Djang
 загрузку файлов до 20 МБ (в панели принимаются только документы PDF/DOC/DOCX/XLS/XLSX/ODT/ODS/SIG/P7S и фото
 JPG/PNG/WEBP). **Вход в панель `/admin/login/` ограничен: не более 5 попыток в минуту с одного IP** (+5 подряд
 «в запас»), сверх лимита nginx отвечает `429` — защита от подбора пароля. Тот же лимит есть в Docker-конфиге
-`deploy/nginx/docker.conf`. Если вы сами упёрлись в лимит — подождите минуту.
+`deploy/nginx/docker/locations.conf`. Если вы сами упёрлись в лимит — подождите минуту.
 
 ### B7. Обновление
 ```bash
@@ -368,7 +365,7 @@ ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw enable
 apt install -y unattended-upgrades && dpkg-reconfigure -plow unattended-upgrades
 ```
 - Вход по SSH-ключу, пароль root отключить (`PasswordAuthentication no` в `/etc/ssh/sshd_config`).
-- Docker публикует порты в обход ufw: в варианте A с внешним nginx поставьте в `.env` `HTTP_PORT=127.0.0.1:8080`.
+- Docker публикует порты 80/443 в обход ufw — это нормально: снаружи открыт только nginx, база и Django наружу не торчат.
 - Пароль от `/admin/` — длинный и уникальный; не используйте логин `admin` в боевом режиме.
 
 ## Проверка после запуска
@@ -396,30 +393,3 @@ curl -s https://example.ru/sitemap.xml | head
 | 413 Request Entity Too Large | Увеличьте `client_max_body_size` в nginx |
 | Заявки не приходят в Telegram | Проверьте токен/ID чата, бот должен быть добавлен в чат; логи сайта |
 
----
-
-## Docker + HTTPS (certbot на хосте)
-
-nginx внутри `docker compose` работает только по HTTP. HTTPS принимает nginx хоста
-(`deploy/nginx/host-ssl-proxy.conf`) и передаёт запросы контейнеру на `127.0.0.1:8080`.
-
-1. В `.env`: `HTTP_PORT=127.0.0.1:8080`, `SECURE_SSL_REDIRECT=0` (до получения сертификата),
-   `ALLOWED_HOSTS=ВАШ-ДОМЕН.ru,www.ВАШ-ДОМЕН.ru`, `SITE_URL=https://ВАШ-ДОМЕН.ru`.
-2. `docker compose up -d --build` → проверка: `curl -sI http://127.0.0.1:8080 | head -1`.
-3. nginx хоста: `sudo apt install -y nginx certbot python3-certbot-nginx && sudo systemctl enable --now nginx`.
-4. Домен (A-записи `@` и `www`) указывает на IP сервера: `dig +short ВАШ-ДОМЕН.ru`.
-5. Сертификат (стандартный конфиг nginx отвечает на 80 порту):
-   ```bash
-   sudo certbot certonly --webroot -w /var/www/html -d ВАШ-ДОМЕН.ru -d www.ВАШ-ДОМЕН.ru \
-     -m ваш@email.ru --agree-tos --no-eff-email --deploy-hook "systemctl reload nginx"
-   ```
-6. Включить конфиг сайта:
-   ```bash
-   sudo cp deploy/nginx/host-ssl-proxy.conf /etc/nginx/sites-available/uc-site.conf
-   sudo sed -i 's/example\.ru/ВАШ-ДОМЕН.ru/g' /etc/nginx/sites-available/uc-site.conf
-   sudo rm -f /etc/nginx/sites-enabled/default
-   sudo ln -s /etc/nginx/sites-available/uc-site.conf /etc/nginx/sites-enabled/
-   sudo nginx -t && sudo systemctl reload nginx
-   sudo certbot renew --dry-run
-   ```
-7. В `.env`: `SECURE_SSL_REDIRECT=1` → `docker compose up -d`.

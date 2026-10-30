@@ -21,9 +21,11 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # .env не перезаписывает переменные, уже заданные в окружении (docker, systemd).
-load_dotenv(BASE_DIR / ".env", override=False)
-
-
+# Тесты (manage.py test) не читают локальный .env: иначе DEBUG=0 / SECURE_SSL_REDIRECT=1
+# с вашего компьютера ломают их. Переменные окружения (CI, Docker) при этом действуют.
+RUNNING_TESTS = "test" in sys.argv[1:2]
+if not RUNNING_TESTS and os.environ.get("SKIP_DOTENV") != "1":
+    load_dotenv(BASE_DIR / ".env", override=False)
 # --- Помощники для чтения переменных окружения ------------------------------
 
 def env_str(name, default=""):
@@ -191,7 +193,7 @@ STORAGES = {
             "django.contrib.staticfiles.storage.StaticFilesStorage"
             # Тесты не собирают статику (collectstatic) — им манифест не нужен,
             # иначе локальный .env с DEBUG=0 роняет все тесты рендера.
-            if DEBUG or "test" in sys.argv[1:2]
+            if DEBUG or RUNNING_TESTS
             else "whitenoise.storage.CompressedManifestStaticFilesStorage"
         ),
     },
@@ -337,6 +339,8 @@ LOGGING = {
         # 4xx (404, 403) — уровень WARNING: в лог не пишем, чтобы не засорять; 5xx (ERROR) — пишем.
         "django.request": {"handlers": ["console"], "level": "ERROR", "propagate": False},
         "django.security": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        # Боты, заходящие по IP или чужому домену, получают 400 — без трейсбека в логе.
+        "django.security.DisallowedHost": {"handlers": [], "propagate": False},
         "core": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
         "sveden": {"handlers": ["console"], "level": LOG_LEVEL, "propagate": False},
     },

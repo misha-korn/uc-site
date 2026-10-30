@@ -11,10 +11,6 @@ ENV PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends build-essential libpq-dev \
- && rm -rf /var/lib/apt/lists/*
-
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
@@ -46,7 +42,8 @@ RUN apt-get update \
 COPY --from=builder /opt/venv /opt/venv
 
 WORKDIR /app
-COPY --chown=app:app . /app
+# Код принадлежит root (только чтение для app); app пишет только в media/ и staticfiles/
+COPY . /app
 
 # Статика собирается при сборке образа (WhiteNoise + общий том для nginx)
 RUN SECRET_KEY=build-only-not-secret DEBUG=0 ALLOWED_HOSTS=localhost DATABASE_URL=sqlite:////tmp/build.sqlite3 \
@@ -60,8 +57,8 @@ RUN SECRET_KEY=build-only-not-secret DEBUG=0 ALLOWED_HOSTS=localhost DATABASE_UR
 # (на PaaS вроде Amvera /data принадлежит root); entrypoint сразу переходит на пользователя app.
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=10s --timeout=5s --start-period=60s --retries=3 \
   CMD ["python", "/app/deploy/healthcheck.py"]
 
 ENTRYPOINT ["/usr/bin/tini", "--", "/app/deploy/entrypoint.sh"]
-CMD ["sh", "-c", "exec uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT} --workers ${WEB_CONCURRENCY} --proxy-headers --forwarded-allow-ips='*' --no-server-header"]
+CMD ["sh", "-c", "exec uvicorn config.asgi:application --host 0.0.0.0 --port ${PORT} --workers ${WEB_CONCURRENCY} --proxy-headers --forwarded-allow-ips='*' --no-server-header --no-access-log"]
